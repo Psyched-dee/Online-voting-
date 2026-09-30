@@ -58,24 +58,30 @@
             margin-top: 0;
         }
 
-        .setting {
-            padding: 14px 0;
-            border-bottom: 1px solid #e5e7eb;
+        .form-group {
+            margin-bottom: 18px;
         }
 
-        .setting:last-child {
-            border-bottom: none;
-        }
-
-        .label {
-            font-size: 13px;
-            color: #6b7280;
-            margin-bottom: 5px;
-        }
-
-        .value {
-            font-size: 16px;
+        .form-group label {
+            display: block;
+            margin-bottom: 7px;
             font-weight: 600;
+        }
+
+        input,
+        textarea,
+        select {
+            width: 100%;
+            padding: 11px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 15px;
+            font-family: inherit;
+        }
+
+        textarea {
+            min-height: 110px;
+            resize: vertical;
         }
 
         button {
@@ -91,23 +97,38 @@
             color: #111827;
         }
 
-        .dashboard-grid {
-            display: grid;
-            grid-template-columns: repeat(
-                auto-fit,
-                minmax(180px, 1fr)
-            );
-            gap: 15px;
-        }
-
-        .dashboard-button {
-            background: #f3f4f6;
-            min-height: 80px;
+        #saveButton {
+            background: #111827;
+            color: white;
+            width: 100%;
+            padding: 13px;
             font-weight: 600;
         }
 
-        .dashboard-button:hover {
-            background: #e5e7eb;
+        #saveButton:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        #returnButton {
+            background: #111827;
+            color: white;
+        }
+
+        .success {
+            color: #166534;
+            background: #dcfce7;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+        }
+
+        .error {
+            color: #991b1b;
+            background: #fee2e2;
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 15px;
         }
 
         .status {
@@ -115,10 +136,6 @@
             padding: 6px 10px;
             border-radius: 20px;
             background: #e5e7eb;
-        }
-
-        .error {
-            color: #b91c1c;
         }
 
         [hidden] {
@@ -202,146 +219,148 @@
             </div>
 
 
-            <!-- Election information -->
+            <!-- Election Settings -->
 
             <div class="card">
 
                 <h2>Election Settings</h2>
 
-                <p id="electionError" class="error"></p>
+                <p id="message"></p>
 
 
-                <div class="setting">
+                <form id="electionForm">
 
-                    <div class="label">
-                        Election Title
+                    <div class="form-group">
+
+                        <label for="title">
+                            Election Title
+                        </label>
+
+                        <input
+                            type="text"
+                            id="title"
+                            required
+                        >
+
                     </div>
 
-                    <div
-                        class="value"
-                        id="electionTitle"
+
+                    <div class="form-group">
+
+                        <label for="description">
+                            Description
+                        </label>
+
+                        <textarea
+                            id="description"
+                        ></textarea>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="startsAt">
+                            Start Date & Time
+                        </label>
+
+                        <input
+                            type="datetime-local"
+                            id="startsAt"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="endsAt">
+                            End Date & Time
+                        </label>
+
+                        <input
+                            type="datetime-local"
+                            id="endsAt"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="status">
+                            Election Status
+                        </label>
+
+                        <select id="status">
+
+                            <option value="draft">
+                                Draft
+                            </option>
+
+                            <option value="open">
+                                Open
+                            </option>
+
+                            <option value="closed">
+                                Closed
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="resultsPublished">
+                            Results Published
+                        </label>
+
+                        <select id="resultsPublished">
+
+                            <option value="false">
+                                No
+                            </option>
+
+                            <option value="true">
+                                Yes
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <button
+                        type="submit"
+                        id="saveButton"
                     >
-                        Loading...
-                    </div>
+                        Save Election Settings
+                    </button>
 
-                </div>
-
-
-                <div class="setting">
-
-                    <div class="label">
-                        Description
-                    </div>
-
-                    <div
-                        class="value"
-                        id="electionDescription"
-                    >
-                        Loading...
-                    </div>
-
-                </div>
-
-
-                <div class="setting">
-
-                    <div class="label">
-                        Start Date
-                    </div>
-
-                    <div
-                        class="value"
-                        id="electionStart"
-                    >
-                        Loading...
-                    </div>
-
-                </div>
-
-
-                <div class="setting">
-
-                    <div class="label">
-                        End Date
-                    </div>
-
-                    <div
-                        class="value"
-                        id="electionEnd"
-                    >
-                        Loading...
-                    </div>
-
-                </div>
-
-
-                <div class="setting">
-
-                    <div class="label">
-                        Election Status
-                    </div>
-
-                    <div
-                        class="value"
-                        id="electionStatus"
-                    >
-                        Loading...
-                    </div>
-
-                </div>
-
-
-                <div class="setting">
-
-                    <div class="label">
-                        Results Published
-                    </div>
-
-                    <div
-                        class="value"
-                        id="resultsPublished"
-                    >
-                        Loading...
-                    </div>
-
-                </div>
+                </form>
 
             </div>
 
 
-            <!-- Management sections -->
+            <!-- Current information -->
 
             <div class="card">
 
-                <h2>Election Management</h2>
+                <h2>Current Election Information</h2>
 
-                <div class="dashboard-grid">
+                <p>
+                    <strong>Election ID:</strong>
+                </p>
 
-                    <button class="dashboard-button">
-                        Election Settings
-                    </button>
+                <p id="displayElectionId"></p>
 
-                    <button class="dashboard-button">
-                        Positions
-                    </button>
+                <p>
+                    <strong>Current Status:</strong>
+                </p>
 
-                    <button class="dashboard-button">
-                        Candidates
-                    </button>
-
-                    <button class="dashboard-button">
-                        Voters
-                    </button>
-
-                    <button class="dashboard-button">
-                        Results
-                    </button>
-
-                    <button class="dashboard-button">
-                        Audit Logs
-                    </button>
-
-                </div>
+                <p id="displayStatus"></p>
 
             </div>
 
@@ -350,7 +369,7 @@
     </main>
 
 
-    <!-- Supabase library -->
+    <!-- Supabase -->
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -368,15 +387,19 @@
     <script>
 
         /*
-         * The ID of our development election.
+         * TEST ELECTION
          *
-         * Replace the placeholder with the
-         * Test Election ID you already retrieved.
+         * Replace this with your actual
+         * Test Election ID.
          */
 
         const TEST_ELECTION_ID =
             "6a1beb9d-24c7-4741-a128-0a9986210788";
 
+
+        /*
+         * HTML elements
+         */
 
         const loadingSection =
             document.getElementById(
@@ -408,6 +431,21 @@
                 "returnButton"
             );
 
+        const electionForm =
+            document.getElementById(
+                "electionForm"
+            );
+
+        const message =
+            document.getElementById(
+                "message"
+            );
+
+        const saveButton =
+            document.getElementById(
+                "saveButton"
+            );
+
 
         /*
          * Protect the admin page.
@@ -419,10 +457,6 @@
                 await getCurrentUser();
 
 
-            /*
-             * No authenticated user.
-             */
-
             if (!user) {
 
                 window.location.href =
@@ -432,19 +466,11 @@
             }
 
 
-            /*
-             * Check administrator permission.
-             */
-
             const isAdmin =
                 await isElectionAdmin(
                     TEST_ELECTION_ID
                 );
 
-
-            /*
-             * Authenticated but not an admin.
-             */
 
             if (!isAdmin) {
 
@@ -457,7 +483,7 @@
 
 
             /*
-             * Authorized administrator.
+             * Authorized admin.
              */
 
             loadingSection.hidden = true;
@@ -469,7 +495,7 @@
 
 
             /*
-             * Now load the election information.
+             * Load the election.
              */
 
             await loadElection();
@@ -478,7 +504,7 @@
 
 
         /*
-         * Load the election from Supabase.
+         * Load election settings.
          */
 
         async function loadElection() {
@@ -501,10 +527,6 @@
                 .single();
 
 
-            /*
-             * Handle database errors.
-             */
-
             if (error) {
 
                 console.error(
@@ -512,80 +534,364 @@
                     error
                 );
 
-                document.getElementById(
-                    "electionError"
-                ).textContent =
-                    "Could not load election information.";
+                showMessage(
+                    "Could not load election information.",
+                    "error"
+                );
 
                 return;
             }
 
 
             /*
-             * Display election information.
+             * Fill the form.
              */
 
             document.getElementById(
-                "electionTitle"
-            ).textContent =
-                election.title;
+                "title"
+            ).value =
+                election.title || "";
 
 
             document.getElementById(
-                "electionDescription"
-            ).textContent =
-                election.description ||
-                "No description provided.";
+                "description"
+            ).value =
+                election.description || "";
 
 
             document.getElementById(
-                "electionStart"
-            ).textContent =
-                formatDate(election.starts_at);
+                "startsAt"
+            ).value =
+                toDateTimeLocal(
+                    election.starts_at
+                );
 
 
             document.getElementById(
-                "electionEnd"
-            ).textContent =
-                formatDate(election.ends_at);
+                "endsAt"
+            ).value =
+                toDateTimeLocal(
+                    election.ends_at
+                );
 
 
             document.getElementById(
-                "electionStatus"
-            ).innerHTML =
-                `<span class="status">
-                    ${election.status}
-                </span>`;
+                "status"
+            ).value =
+                election.status;
 
 
             document.getElementById(
                 "resultsPublished"
-            ).textContent =
+            ).value =
                 election.results_published
-                    ? "Yes"
-                    : "No";
+                    ? "true"
+                    : "false";
+
+
+            /*
+             * Display current information.
+             */
+
+            document.getElementById(
+                "displayElectionId"
+            ).textContent =
+                election.id;
+
+
+            document.getElementById(
+                "displayStatus"
+            ).textContent =
+                election.status;
 
         }
 
 
         /*
-         * Convert the database timestamp
-         * into a readable date.
+         * Convert Supabase timestamp into
+         * datetime-local format.
          */
 
-        function formatDate(timestamp) {
+        function toDateTimeLocal(timestamp) {
 
             if (!timestamp) {
-                return "Not set";
+                return "";
             }
 
-            return new Date(timestamp)
-                .toLocaleString();
+
+            const date =
+                new Date(timestamp);
+
+
+            const year =
+                date.getFullYear();
+
+
+            const month =
+                String(
+                    date.getMonth() + 1
+                ).padStart(2, "0");
+
+
+            const day =
+                String(
+                    date.getDate()
+                ).padStart(2, "0");
+
+
+            const hours =
+                String(
+                    date.getHours()
+                ).padStart(2, "0");
+
+
+            const minutes =
+                String(
+                    date.getMinutes()
+                ).padStart(2, "0");
+
+
+            return (
+                year +
+                "-" +
+                month +
+                "-" +
+                day +
+                "T" +
+                hours +
+                ":" +
+                minutes
+            );
+
         }
 
 
         /*
-         * Logout
+         * Save election settings.
+         */
+
+        electionForm.addEventListener(
+            "submit",
+            async (event) => {
+
+                event.preventDefault();
+
+
+                saveButton.disabled = true;
+
+                saveButton.textContent =
+                    "Saving...";
+
+                clearMessage();
+
+
+                const title =
+                    document.getElementById(
+                        "title"
+                    ).value.trim();
+
+
+                const description =
+                    document.getElementById(
+                        "description"
+                    ).value.trim();
+
+
+                const startsAt =
+                    document.getElementById(
+                        "startsAt"
+                    ).value;
+
+
+                const endsAt =
+                    document.getElementById(
+                        "endsAt"
+                    ).value;
+
+
+                const status =
+                    document.getElementById(
+                        "status"
+                    ).value;
+
+
+                const resultsPublished =
+                    document.getElementById(
+                        "resultsPublished"
+                    ).value === "true";
+
+
+                /*
+                 * Basic validation.
+                 */
+
+                if (!title) {
+
+                    showMessage(
+                        "Election title is required.",
+                        "error"
+                    );
+
+                    resetSaveButton();
+
+                    return;
+                }
+
+
+                if (
+                    startsAt &&
+                    endsAt &&
+                    new Date(startsAt) >=
+                    new Date(endsAt)
+                ) {
+
+                    showMessage(
+                        "The end time must be after the start time.",
+                        "error"
+                    );
+
+                    resetSaveButton();
+
+                    return;
+                }
+
+
+                /*
+                 * Prepare update.
+                 */
+
+                const updates = {
+
+                    title: title,
+
+                    description:
+                        description || null,
+
+                    starts_at:
+                        startsAt
+                            ? new Date(
+                                startsAt
+                              ).toISOString()
+                            : null,
+
+                    ends_at:
+                        endsAt
+                            ? new Date(
+                                endsAt
+                              ).toISOString()
+                            : null,
+
+                    status: status,
+
+                    results_published:
+                        resultsPublished
+
+                };
+
+
+                /*
+                 * Send update to Supabase.
+                 */
+
+                const {
+                    data,
+                    error
+                } = await supabaseClient
+                    .from("elections")
+                    .update(updates)
+                    .eq("id", TEST_ELECTION_ID)
+                    .select()
+                    .single();
+
+
+                /*
+                 * Handle error.
+                 */
+
+                if (error) {
+
+                    console.error(
+                        "Election update error:",
+                        error
+                    );
+
+                    showMessage(
+                        "Could not save election settings: " +
+                        error.message,
+                        "error"
+                    );
+
+                    resetSaveButton();
+
+                    return;
+                }
+
+
+                /*
+                 * Update succeeded.
+                 */
+
+                console.log(
+                    "Updated election:",
+                    data
+                );
+
+
+                showMessage(
+                    "Election settings saved successfully.",
+                    "success"
+                );
+
+
+                document.getElementById(
+                    "displayStatus"
+                ).textContent =
+                    data.status;
+
+
+                resetSaveButton();
+
+            }
+        );
+
+
+        /*
+         * Display messages.
+         */
+
+        function showMessage(
+            text,
+            type
+        ) {
+
+            message.textContent = text;
+
+            message.className = type;
+
+        }
+
+
+        function clearMessage() {
+
+            message.textContent = "";
+
+            message.className = "";
+
+        }
+
+
+        function resetSaveButton() {
+
+            saveButton.disabled = false;
+
+            saveButton.textContent =
+                "Save Election Settings";
+
+        }
+
+
+        /*
+         * Logout.
          */
 
         logoutButton.addEventListener(
@@ -594,6 +900,7 @@
 
                 const success =
                     await logoutUser();
+
 
                 if (success) {
 
@@ -607,7 +914,7 @@
 
 
         /*
-         * Return to login
+         * Return to login.
          */
 
         returnButton.addEventListener(
@@ -622,7 +929,7 @@
 
 
         /*
-         * Start the page.
+         * Start application.
          */
 
         protectAdminPage();
