@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Election Admin Dashboard</title>
+
+    <style>
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f7fa;
+            color: #1f2937;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        main {
+            max-width: 1000px;
+            margin: 30px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+        }
+
+        .card h2 {
+            margin-top: 0;
+        }
+
+        .setting {
+            padding: 14px 0;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .setting:last-child {
+            border-bottom: none;
+        }
+
+        .label {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 5px;
+        }
+
+        .value {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        button {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 16px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        #logoutButton {
+            background: white;
+            color: #111827;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(
+                auto-fit,
+                minmax(180px, 1fr)
+            );
+            gap: 15px;
+        }
+
+        .dashboard-button {
+            background: #f3f4f6;
+            min-height: 80px;
+            font-weight: 600;
+        }
+
+        .dashboard-button:hover {
+            background: #e5e7eb;
+        }
+
+        .status {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            background: #e5e7eb;
+        }
+
+        .error {
+            color: #b91c1c;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+    <header>
+
+        <h1>Election Admin Dashboard</h1>
+
+        <button id="logoutButton">
+            Log Out
+        </button>
+
+    </header>
+
+
+    <main>
+
+        <!-- Loading -->
+
+        <section id="loadingSection">
+
+            <div class="card">
+
+                <h2>Checking access...</h2>
+
+                <p>
+                    Please wait while we verify your account.
+                </p>
+
+            </div>
+
+        </section>
+
+
+        <!-- Access denied -->
+
+        <section
+            id="deniedSection"
+            hidden
+        >
+
+            <div class="card">
+
+                <h2>Access Denied</h2>
+
+                <p>
+                    You do not have administrator
+                    permission for this election.
+                </p>
+
+                <button id="returnButton">
+                    Return to Login
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <!-- Dashboard -->
+
+        <section
+            id="dashboardSection"
+            hidden
+        >
+
+            <div class="card">
+
+                <h2>Welcome, Administrator</h2>
+
+                <p id="adminEmail"></p>
+
+            </div>
+
+
+            <!-- Election information -->
+
+            <div class="card">
+
+                <h2>Election Settings</h2>
+
+                <p id="electionError" class="error"></p>
+
+
+                <div class="setting">
+
+                    <div class="label">
+                        Election Title
+                    </div>
+
+                    <div
+                        class="value"
+                        id="electionTitle"
+                    >
+                        Loading...
+                    </div>
+
+                </div>
+
+
+                <div class="setting">
+
+                    <div class="label">
+                        Description
+                    </div>
+
+                    <div
+                        class="value"
+                        id="electionDescription"
+                    >
+                        Loading...
+                    </div>
+
+                </div>
+
+
+                <div class="setting">
+
+                    <div class="label">
+                        Start Date
+                    </div>
+
+                    <div
+                        class="value"
+                        id="electionStart"
+                    >
+                        Loading...
+                    </div>
+
+                </div>
+
+
+                <div class="setting">
+
+                    <div class="label">
+                        End Date
+                    </div>
+
+                    <div
+                        class="value"
+                        id="electionEnd"
+                    >
+                        Loading...
+                    </div>
+
+                </div>
+
+
+                <div class="setting">
+
+                    <div class="label">
+                        Election Status
+                    </div>
+
+                    <div
+                        class="value"
+                        id="electionStatus"
+                    >
+                        Loading...
+                    </div>
+
+                </div>
+
+
+                <div class="setting">
+
+                    <div class="label">
+                        Results Published
+                    </div>
+
+                    <div
+                        class="value"
+                        id="resultsPublished"
+                    >
+                        Loading...
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- Management sections -->
+
+            <div class="card">
+
+                <h2>Election Management</h2>
+
+                <div class="dashboard-grid">
+
+                    <button class="dashboard-button">
+                        Election Settings
+                    </button>
+
+                    <button class="dashboard-button">
+                        Positions
+                    </button>
+
+                    <button class="dashboard-button">
+                        Candidates
+                    </button>
+
+                    <button class="dashboard-button">
+                        Voters
+                    </button>
+
+                    <button class="dashboard-button">
+                        Results
+                    </button>
+
+                    <button class="dashboard-button">
+                        Audit Logs
+                    </button>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- Supabase library -->
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+
+    <!-- Supabase configuration -->
+
+    <script src="js/supabase.js"></script>
+
+
+    <!-- Authentication module -->
+
+    <script src="js/auth.js"></script>
+
+
+    <script>
+
+        /*
+         * The ID of our development election.
+         *
+         * Replace the placeholder with the
+         * Test Election ID you already retrieved.
+         */
+
+        const TEST_ELECTION_ID =
+            "6a1beb9d-24c7-4741-a128-0a9986210788";
+
+
+        const loadingSection =
+            document.getElementById(
+                "loadingSection"
+            );
+
+        const dashboardSection =
+            document.getElementById(
+                "dashboardSection"
+            );
+
+        const deniedSection =
+            document.getElementById(
+                "deniedSection"
+            );
+
+        const adminEmail =
+            document.getElementById(
+                "adminEmail"
+            );
+
+        const logoutButton =
+            document.getElementById(
+                "logoutButton"
+            );
+
+        const returnButton =
+            document.getElementById(
+                "returnButton"
+            );
+
+
+        /*
+         * Protect the admin page.
+         */
+
+        async function protectAdminPage() {
+
+            const user =
+                await getCurrentUser();
+
+
+            /*
+             * No authenticated user.
+             */
+
+            if (!user) {
+
+                window.location.href =
+                    "test.html";
+
+                return;
+            }
+
+
+            /*
+             * Check administrator permission.
+             */
+
+            const isAdmin =
+                await isElectionAdmin(
+                    TEST_ELECTION_ID
+                );
+
+
+            /*
+             * Authenticated but not an admin.
+             */
+
+            if (!isAdmin) {
+
+                loadingSection.hidden = true;
+
+                deniedSection.hidden = false;
+
+                return;
+            }
+
+
+            /*
+             * Authorized administrator.
+             */
+
+            loadingSection.hidden = true;
+
+            dashboardSection.hidden = false;
+
+            adminEmail.textContent =
+                "Signed in as: " + user.email;
+
+
+            /*
+             * Now load the election information.
+             */
+
+            await loadElection();
+
+        }
+
+
+        /*
+         * Load the election from Supabase.
+         */
+
+        async function loadElection() {
+
+            const {
+                data: election,
+                error
+            } = await supabaseClient
+                .from("elections")
+                .select(`
+                    id,
+                    title,
+                    description,
+                    starts_at,
+                    ends_at,
+                    status,
+                    results_published
+                `)
+                .eq("id", TEST_ELECTION_ID)
+                .single();
+
+
+            /*
+             * Handle database errors.
+             */
+
+            if (error) {
+
+                console.error(
+                    "Election loading error:",
+                    error
+                );
+
+                document.getElementById(
+                    "electionError"
+                ).textContent =
+                    "Could not load election information.";
+
+                return;
+            }
+
+
+            /*
+             * Display election information.
+             */
+
+            document.getElementById(
+                "electionTitle"
+            ).textContent =
+                election.title;
+
+
+            document.getElementById(
+                "electionDescription"
+            ).textContent =
+                election.description ||
+                "No description provided.";
+
+
+            document.getElementById(
+                "electionStart"
+            ).textContent =
+                formatDate(election.starts_at);
+
+
+            document.getElementById(
+                "electionEnd"
+            ).textContent =
+                formatDate(election.ends_at);
+
+
+            document.getElementById(
+                "electionStatus"
+            ).innerHTML =
+                `<span class="status">
+                    ${election.status}
+                </span>`;
+
+
+            document.getElementById(
+                "resultsPublished"
+            ).textContent =
+                election.results_published
+                    ? "Yes"
+                    : "No";
+
+        }
+
+
+        /*
+         * Convert the database timestamp
+         * into a readable date.
+         */
+
+        function formatDate(timestamp) {
+
+            if (!timestamp) {
+                return "Not set";
+            }
+
+            return new Date(timestamp)
+                .toLocaleString();
+        }
+
+
+        /*
+         * Logout
+         */
+
+        logoutButton.addEventListener(
+            "click",
+            async () => {
+
+                const success =
+                    await logoutUser();
+
+                if (success) {
+
+                    window.location.href =
+                        "test.html";
+
+                }
+
+            }
+        );
+
+
+        /*
+         * Return to login
+         */
+
+        returnButton.addEventListener(
+            "click",
+            () => {
+
+                window.location.href =
+                    "test.html";
+
+            }
+        );
+
+
+        /*
+         * Start the page.
+         */
+
+        protectAdminPage();
+
+    </script>
+
+</body>
+
+</html>
