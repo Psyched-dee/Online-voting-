@@ -364,6 +364,168 @@
 
             </div>
 
+            <!-- Positions and Candidates -->
+
+            <div class="card">
+
+                <h2>Positions & Candidates</h2>
+
+                <!-- Add Position -->
+
+                <div
+                    style="
+                        margin-bottom: 25px;
+                        padding: 16px;
+                        border: 1px solid #e5e7eb;
+                        border-radius: 8px;
+                    "
+                >
+
+                    <h3>Add Position</h3>
+
+                    <form id="positionForm">
+
+                        <div class="form-group">
+
+                            <label for="positionName">
+                                Position Name
+                            </label>
+
+                            <input
+                                type="text"
+                                id="positionName"
+                                placeholder="e.g. President"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="maxSelections">
+                                Maximum Selections
+                            </label>
+
+                            <input
+                                type="number"
+                                id="maxSelections"
+                                min="1"
+                                value="1"
+                                required
+                            >
+
+                        </div>
+
+
+                        <div class="form-group">
+
+                            <label for="displayOrder">
+                                Display Order
+                            </label>
+
+                            <input
+                                type="number"
+                                id="displayOrder"
+                                min="1"
+                                value="1"
+                                required
+                            >
+
+                        </div>
+
+
+                        <button
+                            type="submit"
+                            id="addPositionButton"
+                        >
+                            Add Position
+                        </button>
+
+                    </form>
+
+                </div>
+
+                <!-- Add Candidate -->
+                <div
+                    style="
+                        margin-bottom: 25px;
+                        padding: 16px;
+                        border: 1px solid #e5e7eb;
+                        border-radius: 8px;
+                    "
+                >
+                    <h3>Add Candidate</h3>
+
+                    <form id="candidateForm">
+
+                        <div class="form-group">
+                            <label for="candidatePosition">
+                                Position
+                            </label>
+
+                            <select id="candidatePosition" required>
+                                <option value="">
+                                    Select a position
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="candidateName">
+                                Candidate Name
+                            </label>
+
+                            <input
+                                type="text"
+                                id="candidateName"
+                                placeholder="e.g. John Doe"
+                                required
+                            >
+                        </div>
+
+                        <div class="form-group">
+                            <label for="candidateManifesto">
+                                Manifesto
+                            </label>
+
+                            <textarea
+                                id="candidateManifesto"
+                                rows="4"
+                                placeholder="Enter candidate manifesto"
+                            ></textarea>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="candidatePhoto">
+                                Photo URL
+                            </label>
+
+                            <input
+                                type="url"
+                                id="candidatePhoto"
+                                placeholder="https://example.com/photo.jpg"
+                            >
+                        </div>
+
+                        <button
+                            type="submit"
+                            id="addCandidateButton"
+                        >
+                            Add Candidate
+                        </button>
+
+                    </form>
+                </div>
+
+                <p id="candidateMessage"></p>
+
+                <div id="positionsContainer">
+                    <p>Loading positions...</p>
+                </div>
+
+            </div>
+
         </section>
 
     </main>
@@ -445,9 +607,35 @@
             document.getElementById(
                 "saveButton"
             );
+        const positionsContainer =
+            document.getElementById(
+                "positionsContainer"
+            );
 
+        const candidateMessage =
+            document.getElementById(
+                "candidateMessage"
+            );
+        const positionForm =
+    document.getElementById(
+        "positionForm"
+            );
 
-        /*
+        const addPositionButton =
+            document.getElementById(
+                "addPositionButton"
+            );
+
+         const candidateForm =
+    document.getElementById("candidateForm");
+
+        const candidatePosition =
+            document.getElementById("candidatePosition");
+
+        const addCandidateButton =
+            document.getElementById("addCandidateButton");
+        
+            /*
          * Protect the admin page.
          */
 
@@ -499,6 +687,7 @@
              */
 
             await loadElection();
+        await loadPositionsAndCandidates();
 
         }
 
@@ -606,6 +795,660 @@
 
         }
 
+        /*
+ * Load positions and their candidates.
+ */
+
+  async function loadPositionsAndCandidates() {
+    positionsContainer.innerHTML =
+        "<p>Loading positions and candidates...</p>";
+
+    candidatePosition.innerHTML =
+        '<option value="">Select a position</option>';
+
+    const {
+        data: positions,
+        error: positionsError
+    } = await supabaseClient
+        .from("positions")
+        .select(`
+            id,
+            name,
+            max_selections,
+            display_order,
+            candidates (
+                id,
+                name,
+                manifesto,
+                photo_url,
+                is_active
+            )
+        `)
+        .eq("election_id", TEST_ELECTION_ID)
+        .order("display_order", {
+            ascending: true
+        });
+
+    if (positionsError) {
+
+        console.error(
+            "Positions loading error:",
+            positionsError
+        );
+
+        positionsContainer.innerHTML =
+            "<p>Could not load positions.</p>";
+
+        return;
+    }
+
+    if (!positions || positions.length === 0) {
+    positionsContainer.innerHTML =
+        "<p>No positions have been created yet.</p>";
+
+    candidatePosition.innerHTML =
+        '<option value="">No positions available</option>';
+
+    return;
+}
+
+    positionsContainer.innerHTML = "";
+
+    positions.forEach((position) => {
+
+    // =========================
+    // POSITION CARD
+    // =========================
+
+    const positionCard =
+        document.createElement("div");
+
+    positionCard.style.marginBottom = "20px";
+    positionCard.style.padding = "16px";
+    positionCard.style.border = "1px solid #e5e7eb";
+    positionCard.style.borderRadius = "8px";
+
+
+    // =========================
+    // POSITION TITLE
+    // =========================
+
+    const positionTitle =
+        document.createElement("h3");
+
+    positionTitle.textContent =
+        position.name;
+
+    positionCard.appendChild(positionTitle);
+
+
+    // =========================
+    // SELECTION INFORMATION
+    // =========================
+
+    const selectionInfo =
+        document.createElement("p");
+
+    selectionInfo.textContent =
+        "Maximum selections: " +
+        position.max_selections;
+
+    positionCard.appendChild(selectionInfo);
+
+
+    // =========================
+    // POSITION BUTTONS
+    // =========================
+
+    const editPositionButton =
+        document.createElement("button");
+
+    editPositionButton.type = "button";
+
+    editPositionButton.textContent =
+        "Edit Position";
+
+    editPositionButton.addEventListener(
+        "click",
+        () => editPosition(position)
+    );
+
+    positionCard.appendChild(
+        editPositionButton
+    );
+
+
+    const deletePositionButton =
+        document.createElement("button");
+
+    deletePositionButton.type = "button";
+
+    deletePositionButton.textContent =
+        "Delete Position";
+
+    deletePositionButton.style.marginLeft =
+        "10px";
+
+    deletePositionButton.addEventListener(
+        "click",
+        () => deletePosition(position)
+    );
+
+    positionCard.appendChild(
+        deletePositionButton
+    );
+
+
+    // =========================
+    // CANDIDATES
+    // =========================
+
+    if (
+        !position.candidates ||
+        position.candidates.length === 0
+    ) {
+
+        const noCandidates =
+            document.createElement("p");
+
+        noCandidates.textContent =
+            "No candidates yet.";
+
+        positionCard.appendChild(
+            noCandidates
+        );
+
+    } else {
+
+        const candidateList =
+            document.createElement("div");
+
+
+        position.candidates.forEach(
+            (candidate) => {
+
+                const candidateItem =
+                    document.createElement("div");
+
+                candidateItem.style.marginBottom =
+                    "12px";
+
+                candidateItem.style.padding =
+                    "12px";
+
+                candidateItem.style.border =
+                    "1px solid #e5e7eb";
+
+                candidateItem.style.borderRadius =
+                    "6px";
+
+
+                // Candidate name
+
+                const candidateName =
+                    document.createElement("strong");
+
+                candidateName.textContent =
+                    candidate.name;
+
+                candidateItem.appendChild(
+                    candidateName
+                );
+
+
+                // Candidate status
+
+                const candidateStatus =
+                    document.createElement("span");
+
+                candidateStatus.textContent =
+                    candidate.is_active
+                        ? " — Active"
+                        : " — Inactive";
+
+                candidateItem.appendChild(
+                    candidateStatus
+                );
+
+
+                // =========================
+                // EDIT CANDIDATE
+                // =========================
+
+                const editButton =
+                    document.createElement("button");
+
+                editButton.type = "button";
+
+                editButton.textContent =
+                    "Edit";
+
+                editButton.style.marginLeft =
+                    "10px";
+
+                editButton.addEventListener(
+                    "click",
+                    () => editCandidate(candidate)
+                );
+
+                candidateItem.appendChild(
+                    editButton
+                );
+
+
+                // =========================
+                // ACTIVATE / DEACTIVATE
+                // =========================
+
+                const toggleButton =
+                    document.createElement("button");
+
+                toggleButton.type = "button";
+
+                toggleButton.textContent =
+                    candidate.is_active
+                        ? "Deactivate"
+                        : "Activate";
+
+                toggleButton.style.marginLeft =
+                    "10px";
+
+                toggleButton.addEventListener(
+                    "click",
+                    () => toggleCandidate(candidate)
+                );
+
+                candidateItem.appendChild(
+                    toggleButton
+                );
+
+
+                // =========================
+                // DELETE CANDIDATE
+                // =========================
+
+                const deleteButton =
+                    document.createElement("button");
+
+                deleteButton.type = "button";
+
+                deleteButton.textContent =
+                    "Delete";
+
+                deleteButton.style.marginLeft =
+                    "10px";
+
+                deleteButton.addEventListener(
+                    "click",
+                    () => deleteCandidate(candidate)
+                );
+
+                candidateItem.appendChild(
+                    deleteButton
+                );
+
+
+                candidateList.appendChild(
+                    candidateItem
+                );
+            }
+        );
+
+
+        positionCard.appendChild(
+            candidateList
+        );
+    }
+
+
+    positionsContainer.appendChild(
+        positionCard
+    );
+});
+    
+}
+
+            async function toggleCandidate(candidate) {
+
+            const newStatus =
+                !candidate.is_active;
+
+            const action =
+                newStatus
+                    ? "activate"
+                    : "deactivate";
+
+            const confirmed =
+                confirm(
+                    `Are you sure you want to ${action} ${candidate.name}?`
+                );
+
+            if (!confirmed) {
+                return;
+            }
+
+            candidateMessage.textContent =
+                "Updating candidate...";
+
+            const { data, error } =
+                await supabaseClient
+                    .from("candidates")
+                    .update({
+                        is_active: newStatus
+                    })
+                    .eq("id", candidate.id)
+                    .select()
+                    .single();
+
+            if (error) {
+                console.error(
+                    "Candidate status update error:",
+                    error
+                );
+
+                candidateMessage.textContent =
+                    "Could not update candidate: " +
+                    error.message;
+
+                return;
+            }
+
+            console.log(
+                "Candidate updated:",
+                data
+            );
+
+            candidateMessage.textContent =
+                newStatus
+                    ? "Candidate activated."
+                    : "Candidate deactivated.";
+
+            await loadPositionsAndCandidates();
+        }
+
+            async function editCandidate(candidate) {
+
+                const newName =
+                    prompt(
+                        "Candidate name:",
+                        candidate.name
+                    );
+
+                if (newName === null) {
+                    return;
+                }
+
+                const trimmedName =
+                    newName.trim();
+
+                if (!trimmedName) {
+                    candidateMessage.textContent =
+                        "Candidate name cannot be empty.";
+                    return;
+                }
+
+                const newManifesto =
+                    prompt(
+                        "Candidate manifesto:",
+                        candidate.manifesto || ""
+                    );
+
+                if (newManifesto === null) {
+                    return;
+                }
+
+                const newPhotoUrl =
+                    prompt(
+                        "Candidate photo URL:",
+                        candidate.photo_url || ""
+                    );
+
+                if (newPhotoUrl === null) {
+                    return;
+                }
+
+                candidateMessage.textContent =
+                    "Updating candidate...";
+
+                const { data, error } =
+                    await supabaseClient
+                        .from("candidates")
+                        .update({
+                            name: trimmedName,
+                            manifesto:
+                                newManifesto.trim() || null,
+                            photo_url:
+                                newPhotoUrl.trim() || null
+                        })
+                        .eq("id", candidate.id)
+                        .select()
+                        .single();
+
+                if (error) {
+                    console.error(
+                        "Candidate update error:",
+                        error
+                    );
+
+                    candidateMessage.textContent =
+                        "Could not update candidate: " +
+                        error.message;
+
+                    return;
+                }
+
+                console.log(
+                    "Candidate updated:",
+                    data
+                );
+
+                candidateMessage.textContent =
+                    "Candidate updated successfully.";
+
+                await loadPositionsAndCandidates();
+         }
+
+         async function editPosition(position) {
+
+    const newName =
+        prompt(
+            "Position name:",
+            position.name
+        );
+
+    if (newName === null) {
+        return;
+    }
+
+    const trimmedName =
+        newName.trim();
+
+    if (!trimmedName) {
+        candidateMessage.textContent =
+            "Position name cannot be empty.";
+
+        return;
+    }
+
+
+    const newMaxSelections =
+        prompt(
+            "Maximum selections:",
+            position.max_selections
+        );
+
+    if (newMaxSelections === null) {
+        return;
+    }
+
+
+    const maxSelections =
+        Number(newMaxSelections);
+
+
+    if (
+        !Number.isInteger(maxSelections) ||
+        maxSelections < 1
+    ) {
+
+        candidateMessage.textContent =
+            "Maximum selections must be at least 1.";
+
+        return;
+    }
+
+
+    const newDisplayOrder =
+        prompt(
+            "Display order:",
+            position.display_order
+        );
+
+    if (newDisplayOrder === null) {
+        return;
+    }
+
+
+    const displayOrder =
+        Number(newDisplayOrder);
+
+
+    if (
+        !Number.isInteger(displayOrder) ||
+        displayOrder < 1
+    ) {
+
+        candidateMessage.textContent =
+            "Display order must be at least 1.";
+
+        return;
+    }
+
+
+    candidateMessage.textContent =
+        "Updating position...";
+
+
+    const { data, error } =
+        await supabaseClient
+            .from("positions")
+            .update({
+                name: trimmedName,
+                max_selections:
+                    maxSelections,
+                display_order:
+                    displayOrder
+            })
+            .eq("id", position.id)
+            .select()
+            .single();
+
+
+    if (error) {
+
+        console.error(
+            "Position update error:",
+            error
+        );
+
+        candidateMessage.textContent =
+            "Could not update position: " +
+            error.message;
+
+        return;
+    }
+
+
+    console.log(
+        "Position updated:",
+        data
+    );
+
+
+    candidateMessage.textContent =
+        "Position updated successfully.";
+
+
+    await loadPositionsAndCandidates();
+}
+
+async function deletePosition(position) {
+
+    const confirmed =
+        confirm(
+            `Are you sure you want to delete the position "${position.name}"?`
+        );
+
+    if (!confirmed) {
+        return;
+    }
+
+
+    // Do not allow deletion if candidates exist
+
+    if (
+        position.candidates &&
+        position.candidates.length > 0
+    ) {
+
+        candidateMessage.textContent =
+            "This position still has candidates. " +
+            "Delete or move the candidates first.";
+
+        return;
+    }
+
+
+    const doubleConfirmed =
+        confirm(
+            "This position has no candidates. " +
+            "Delete it permanently?"
+        );
+
+    if (!doubleConfirmed) {
+        return;
+    }
+
+
+    candidateMessage.textContent =
+        "Deleting position...";
+
+
+    const { data, error } =
+        await supabaseClient
+            .from("positions")
+            .delete()
+            .eq("id", position.id)
+            .select("id, name");
+
+
+    if (error) {
+
+        console.error(
+            "Position deletion error:",
+            error
+        );
+
+        candidateMessage.textContent =
+            "Could not delete position: " +
+            error.message;
+
+        return;
+    }
+
+
+    console.log(
+        "Deleted position:",
+        data
+    );
+
+
+    candidateMessage.textContent =
+        "Position deleted successfully.";
+
+
+    await loadPositionsAndCandidates();
+}
 
         /*
          * Convert Supabase timestamp into
@@ -665,7 +1508,264 @@
 
         }
 
+        /*
+        * Add a new position.
+        */
 
+        positionForm.addEventListener(
+            "submit",
+            async (event) => {
+
+                event.preventDefault();
+
+                addPositionButton.disabled = true;
+
+                addPositionButton.textContent =
+                    "Adding...";
+
+                candidateMessage.textContent = "";
+
+
+                const name =
+                    document.getElementById(
+                        "positionName"
+                    ).value.trim();
+
+                const maxSelections =
+                    Number(
+                        document.getElementById(
+                            "maxSelections"
+                        ).value
+                    );
+
+                const displayOrder =
+                    Number(
+                        document.getElementById(
+                            "displayOrder"
+                        ).value
+                    );
+
+
+                /*
+                * Basic validation.
+                */
+
+                if (!name) {
+
+                    candidateMessage.textContent =
+                        "Position name is required.";
+
+                    addPositionButton.disabled = false;
+
+                    addPositionButton.textContent =
+                        "Add Position";
+
+                    return;
+                }
+
+
+                if (
+                    !Number.isInteger(maxSelections) ||
+                    maxSelections < 1
+                ) {
+
+                    candidateMessage.textContent =
+                        "Maximum selections must be at least 1.";
+
+                    addPositionButton.disabled = false;
+
+                    addPositionButton.textContent =
+                        "Add Position";
+
+                    return;
+                }
+
+
+                if (
+                    !Number.isInteger(displayOrder) ||
+                    displayOrder < 1
+                ) {
+
+                    candidateMessage.textContent =
+                        "Display order must be at least 1.";
+
+                    addPositionButton.disabled = false;
+
+                    addPositionButton.textContent =
+                        "Add Position";
+
+                    return;
+                }
+
+
+                /*
+                * Insert position.
+                */
+
+                const {
+                    data,
+                    error
+                } = await supabaseClient
+                    .from("positions")
+                    .insert({
+                        election_id: TEST_ELECTION_ID,
+                        name: name,
+                        max_selections: maxSelections,
+                        display_order: displayOrder
+                    })
+                    .select()
+                    .single();
+
+
+                if (error) {
+
+                    console.error(
+                        "Position creation error:",
+                        error
+                    );
+
+                    candidateMessage.textContent =
+                        "Could not create position: " +
+                        error.message;
+
+                    addPositionButton.disabled = false;
+
+                    addPositionButton.textContent =
+                        "Add Position";
+
+                    return;
+                }
+
+
+                console.log(
+                    "Created position:",
+                    data
+                );
+
+
+                candidateMessage.textContent =
+                    "Position created successfully.";
+
+
+                positionForm.reset();
+
+
+                document.getElementById(
+                    "maxSelections"
+                ).value = 1;
+
+
+                document.getElementById(
+                    "displayOrder"
+                ).value = 1;
+
+
+                await loadPositionsAndCandidates();
+
+
+                addPositionButton.disabled = false;
+
+                addPositionButton.textContent =
+                    "Add Position";
+
+            }
+        );
+
+         candidateForm.addEventListener(
+    "submit",
+    async (event) => {
+        event.preventDefault();
+
+        addCandidateButton.disabled = true;
+        addCandidateButton.textContent = "Adding...";
+        candidateMessage.textContent = "";
+
+        const positionId =
+            candidatePosition.value;
+
+        const name =
+            document.getElementById("candidateName")
+                .value
+                .trim();
+
+        const manifesto =
+            document.getElementById("candidateManifesto")
+                .value
+                .trim();
+
+        const photoUrl =
+            document.getElementById("candidatePhoto")
+                .value
+                .trim();
+
+        // Validate position
+        if (!positionId) {
+            candidateMessage.textContent =
+                "Please select a position.";
+
+            addCandidateButton.disabled = false;
+            addCandidateButton.textContent = "Add Candidate";
+            return;
+        }
+
+        // Validate candidate name
+        if (!name) {
+            candidateMessage.textContent =
+                "Candidate name is required.";
+
+            addCandidateButton.disabled = false;
+            addCandidateButton.textContent = "Add Candidate";
+            return;
+        }
+
+        // Create candidate
+        const { data, error } = await supabaseClient
+            .from("candidates")
+            .insert({
+                position_id: positionId,
+                name: name,
+                manifesto: manifesto || null,
+                photo_url: photoUrl || null,
+                is_active: true
+            })
+            .select()
+            .single();
+
+        if (error) {
+            console.error(
+                "Candidate creation error:",
+                error
+            );
+
+            candidateMessage.textContent =
+                "Could not create candidate: " +
+                error.message;
+
+            addCandidateButton.disabled = false;
+            addCandidateButton.textContent =
+                "Add Candidate";
+
+            return;
+        }
+
+        console.log(
+            "Created candidate:",
+            data
+        );
+
+        candidateMessage.textContent =
+            "Candidate created successfully.";
+
+        candidateForm.reset();
+
+        await loadPositionsAndCandidates();
+
+        addCandidateButton.disabled = false;
+        addCandidateButton.textContent =
+            "Add Candidate";
+    }
+);
+        
         /*
          * Save election settings.
          */
