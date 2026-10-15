@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vote | Online Election</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f5f7fb;
+            color: #111827;
+        }
+
+        header {
+            background: #111827;
+            color: white;
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 20px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        button {
+            cursor: pointer;
+            border: none;
+            border-radius: 6px;
+            padding: 10px 16px;
+            font-size: 14px;
+        }
+
+        button:disabled {
+            opacity: 0.65;
+            cursor: not-allowed;
+        }
+
+        #logoutButton {
+            background: #ef4444;
+            color: white;
+        }
+
+        .results-link {
+            display: inline-block;
+            padding: 10px 14px;
+            border: 1px solid #38bdf8;
+            border-radius: 8px;
+            color: #38bdf8;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.2s ease, color 0.2s ease;
+        }
+
+        .results-link:hover {
+            background: #38bdf8;
+            color: #0b1120;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 30px auto;
+            padding: 0 16px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+        }
+
+        .card h2 {
+            margin-top: 0;
+        }
+
+        .position-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 20px;
+            background: white;
+        }
+
+        .candidate {
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 14px;
+            margin-top: 12px;
+        }
+
+        .candidate label {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            cursor: pointer;
+        }
+
+        .candidate input {
+            margin-top: 4px;
+        }
+
+        .candidate-name {
+            font-weight: bold;
+        }
+
+        .candidate-manifesto {
+            margin-top: 8px;
+            color: #4b5563;
+            white-space: pre-wrap;
+        }
+
+        #submitVoteButton,
+        #loadElectionButton {
+            background: #2563eb;
+            color: white;
+        }
+
+        #submitVoteButton {
+            width: 100%;
+            font-size: 16px;
+            padding: 14px;
+        }
+
+        #submitVoteButton:disabled {
+            background: #9ca3af;
+        }
+
+        #message,
+        #deniedMessage,
+        #electionSelectionMessage {
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        #electionSelectionMessage {
+            margin: 12px 0 0;
+        }
+
+        #electionSelect {
+            display: block;
+            width: 100%;
+            max-width: 100%;
+            margin: 14px 0;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: white;
+            color: #111827;
+            font-size: 15px;
+        }
+
+        #loadingSection,
+        #deniedSection,
+        #voteSection,
+        #electionSelectionSection {
+            display: none;
+        }
+
+        .muted {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        @media (max-width: 480px) {
+            header {
+                flex-wrap: wrap;
+            }
+
+            .header-actions {
+                gap: 8px;
+            }
+
+            main {
+                margin-top: 18px;
+            }
+
+            .card {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>Online Election</h1>
+        <div class="header-actions">
+            <a href="results.html" id="resultsLink" class="results-link">View Results</a>
+            <button id="logoutButton" type="button">Logout</button>
+        </div>
+    </header>
+
+    <main>
+        <section id="loadingSection">
+            <div class="card">
+                <h2>Loading elections...</h2>
+                <p>Please wait.</p>
+            </div>
+        </section>
+
+        <section id="deniedSection">
+            <div class="card">
+                <h2>Election unavailable</h2>
+                <p id="deniedMessage">You cannot access this election.</p>
+            </div>
+        </section>
+
+        <section id="electionSelectionSection" class="card">
+            <h2>Select an Election</h2>
+            <p>Choose the election you want to participate in.</p>
+
+            <label for="electionSelect">Available elections</label>
+            <select id="electionSelect">
+                <option value="">Loading elections...</option>
+            </select>
+
+            <button id="loadElectionButton" type="button">Load Election</button>
+            <p id="electionSelectionMessage" role="status" aria-live="polite"></p>
+            <p class="muted">You must be eligible for the selected election to submit a vote.</p>
+        </section>
+
+        <section id="voteSection">
+            <div class="card">
+                <h2 id="electionTitle">Election</h2>
+                <p id="electionDescription"></p>
+                <p id="electionStatus"></p>
+            </div>
+
+            <div id="message" role="status" aria-live="polite"></div>
+
+            <div id="positionsContainer">
+                <div class="card">
+                    <p>Choose an election to load its positions.</p>
+                </div>
+            </div>
+
+            <div class="card">
+                <button id="submitVoteButton" type="button" disabled>Submit Vote</button>
+            </div>
+        </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/auth.js"></script>
+
+    <script>
+        // The election ID is now selected from Supabase instead of being hardcoded.
+        let SELECTED_ELECTION_ID = null;
+
+        const loadingSection = document.getElementById("loadingSection");
+        const deniedSection = document.getElementById("deniedSection");
+        const electionSelectionSection = document.getElementById("electionSelectionSection");
+        const voteSection = document.getElementById("voteSection");
+
+        const deniedMessage = document.getElementById("deniedMessage");
+        const electionSelect = document.getElementById("electionSelect");
+        const loadElectionButton = document.getElementById("loadElectionButton");
+        const electionSelectionMessage = document.getElementById("electionSelectionMessage");
+
+        const electionTitle = document.getElementById("electionTitle");
+        const electionDescription = document.getElementById("electionDescription");
+        const electionStatus = document.getElementById("electionStatus");
+        const positionsContainer = document.getElementById("positionsContainer");
+        const message = document.getElementById("message");
+        const submitVoteButton = document.getElementById("submitVoteButton");
+        const logoutButton = document.getElementById("logoutButton");
+        const resultsLink = document.getElementById("resultsLink");
+
+        function hideAllMainSections() {
+            loadingSection.style.display = "none";
+            deniedSection.style.display = "none";
+            electionSelectionSection.style.display = "none";
+            voteSection.style.display = "none";
+        }
+
+        function showLoading() {
+            hideAllMainSections();
+            loadingSection.style.display = "block";
+        }
+
+        function showDenied(text) {
+            hideAllMainSections();
+            deniedMessage.textContent = text;
+            deniedSection.style.display = "block";
+            electionSelectionSection.style.display = "block";
+        }
+
+        function showElectionSelector() {
+            hideAllMainSections();
+            electionSelectionSection.style.display = "block";
+        }
+
+        function showVoting() {
+            hideAllMainSections();
+            electionSelectionSection.style.display = "block";
+            voteSection.style.display = "block";
+        }
+
+        async function loadAvailableElections() {
+            electionSelect.innerHTML = "";
+            const placeholder = document.createElement("option");
+            placeholder.value = "";
+            placeholder.textContent = "Choose an election...";
+            electionSelect.appendChild(placeholder);
+
+            const { data, error } = await supabaseClient
+                .from("elections")
+                .select("id, title, starts_at, ends_at, status")
+                .order("starts_at", { ascending: false });
+
+            if (error) {
+                console.error("Could not load elections:", error);
+                electionSelectionMessage.textContent =
+                    "Could not load elections. Please refresh the page and try again.";
+                loadElectionButton.disabled = true;
+                return false;
+            }
+
+            if (!data || data.length === 0) {
+                electionSelectionMessage.textContent = "No elections are available.";
+                loadElectionButton.disabled = true;
+                return false;
+            }
+
+            const now = new Date();
+
+            data.forEach((election) => {
+                const option = document.createElement("option");
+                option.value = election.id;
+
+                let label = election.title || "Untitled election";
+                if (election.status) {
+                    label += " — " + election.status;
+                }
+
+                if (election.starts_at && new Date(election.starts_at) > now) {
+                    label += " (not started)";
+                } else if (election.ends_at && new Date(election.ends_at) <= now) {
+                    label += " (ended)";
+                }
+
+                option.textContent = label;
+                electionSelect.appendChild(option);
+            });
+
+            loadElectionButton.disabled = false;
+            electionSelectionMessage.textContent = "Select an election, then press Load Election.";
+            return true;
+        }
+
+        async function loadElection() {
+            if (!SELECTED_ELECTION_ID) {
+                showDenied("Please select an election first.");
+                return false;
+            }
+
+            const { data, error } = await supabaseClient
+                .from("elections")
+                .select("id, title, description, starts_at, ends_at, status, results_published")
+                .eq("id", SELECTED_ELECTION_ID)
+                .single();
+
+            if (error || !data) {
+                console.error("Election loading error:", error);
+                showDenied(error ? "Could not load this election." : "Election not found.");
+                return false;
+            }
+
+            electionTitle.textContent = data.title || "Election";
+            electionDescription.textContent = data.description || "";
+            electionStatus.textContent = "Status: " + (data.status || "unknown");
+            resultsLink.href = "results.html?election_id=" + encodeURIComponent(data.id);
+
+            const now = new Date();
+            if (!data.starts_at || now < new Date(data.starts_at)) {
+                showDenied("This election has not started yet. Please return when voting opens.");
+                return false;
+            }
+
+            if (!data.ends_at || now >= new Date(data.ends_at)) {
+                showDenied("This election has ended. Voting is no longer available.");
+                return false;
+            }
+
+            if (data.status !== "open") {
+                showDenied("This election is not open for voting.");
+                return false;
+            }
+
+            return true;
+        }
+
+        async function loadPositions() {
+            positionsContainer.innerHTML = "<div class='card'><p>Loading positions...</p></div>";
+            submitVoteButton.disabled = true;
+
+            const { data: positions, error } = await supabaseClient
+                .from("positions")
+                .select(`
+                    id,
+                    name,
+                    max_selections,
+                    display_order,
+                    candidates (
+                        id,
+                        name,
+                        manifesto,
+                        photo_url,
+                        is_active
+                    )
+                `)
+                .eq("election_id", SELECTED_ELECTION_ID)
+                .order("display_order", { ascending: true });
+
+            if (error) {
+                console.error("Position loading error:", error);
+                positionsContainer.innerHTML =
+                    "<div class='card'><p>Could not load positions.</p></div>";
+                return false;
+            }
+
+            if (!positions || positions.length === 0) {
+                positionsContainer.innerHTML =
+                    "<div class='card'><p>No positions are available for this election.</p></div>";
+                return false;
+            }
+
+            positionsContainer.innerHTML = "";
+
+            positions.forEach((position) => {
+                const positionCard = document.createElement("div");
+                positionCard.className = "position-card";
+
+                const title = document.createElement("h2");
+                title.textContent = position.name;
+                positionCard.appendChild(title);
+
+                const selectionInfo = document.createElement("p");
+                selectionInfo.textContent =
+                    "Select up to " + position.max_selections + " candidate(s).";
+                positionCard.appendChild(selectionInfo);
+
+                const activeCandidates = (position.candidates || [])
+                    .filter((candidate) => candidate.is_active);
+
+                if (activeCandidates.length === 0) {
+                    const empty = document.createElement("p");
+                    empty.textContent = "No active candidates.";
+                    positionCard.appendChild(empty);
+                } else {
+                    activeCandidates.forEach((candidate) => {
+                        const candidateDiv = document.createElement("div");
+                        candidateDiv.className = "candidate";
+
+                        const label = document.createElement("label");
+                        const input = document.createElement("input");
+
+                        input.type = Number(position.max_selections) === 1 ? "radio" : "checkbox";
+                        input.name = "position-" + position.id;
+                        input.value = candidate.id;
+                        input.dataset.positionId = position.id;
+                        input.dataset.maxSelections = position.max_selections;
+
+                        const details = document.createElement("div");
+                        const name = document.createElement("div");
+                        name.className = "candidate-name";
+                        name.textContent = candidate.name;
+                        details.appendChild(name);
+
+                        if (candidate.manifesto) {
+                            const manifesto = document.createElement("div");
+                            manifesto.className = "candidate-manifesto";
+                            manifesto.textContent = candidate.manifesto;
+                            details.appendChild(manifesto);
+                        }
+
+                        if (candidate.photo_url) {
+                            const photo = document.createElement("img");
+                            photo.src = candidate.photo_url;
+                            photo.alt = candidate.name ? candidate.name + " photo" : "Candidate photo";
+                            photo.loading = "lazy";
+                            photo.style.maxWidth = "120px";
+                            photo.style.maxHeight = "120px";
+                            photo.style.objectFit = "cover";
+                            photo.style.display = "block";
+                            photo.style.marginTop = "10px";
+                            photo.onerror = () => photo.remove();
+                            details.appendChild(photo);
+                        }
+
+                        label.appendChild(input);
+                        label.appendChild(details);
+                        candidateDiv.appendChild(label);
+                        positionCard.appendChild(candidateDiv);
+
+                        input.addEventListener("change", () => {
+                            const all = document.querySelectorAll(
+                                `input[data-position-id="${position.id}"]`
+                            );
+                            const selected = document.querySelectorAll(
+                                `input[data-position-id="${position.id}"]:checked`
+                            );
+
+                            all.forEach((item) => {
+                                if (item.type === "checkbox") {
+                                    item.disabled =
+                                        selected.length >= Number(position.max_selections) &&
+                                        !item.checked;
+                                }
+                            });
+                        });
+                    });
+                }
+
+                positionsContainer.appendChild(positionCard);
+            });
+
+            submitVoteButton.disabled = false;
+            submitVoteButton.textContent = "Submit Vote";
+            return true;
+        }
+
+        async function handleLoadElection() {
+            const chosenId = electionSelect.value;
+
+            if (!chosenId) {
+                electionSelectionMessage.textContent = "Please choose an election first.";
+                return;
+            }
+
+            SELECTED_ELECTION_ID = chosenId;
+            loadElectionButton.disabled = true;
+            loadElectionButton.textContent = "Loading...";
+            electionSelectionMessage.textContent = "";
+            message.textContent = "";
+            submitVoteButton.disabled = true;
+
+            try {
+                const electionLoaded = await loadElection();
+                if (!electionLoaded) {
+                    return;
+                }
+
+                const positionsLoaded = await loadPositions();
+                if (!positionsLoaded) {
+                    showVoting();
+                    message.textContent = "This election does not currently have positions to vote for.";
+                    submitVoteButton.disabled = true;
+                    return;
+                }
+
+                showVoting();
+                electionSelectionMessage.textContent = "Election loaded successfully.";
+            } finally {
+                loadElectionButton.disabled = false;
+                loadElectionButton.textContent = "Load Election";
+            }
+        }
+
+        async function submitVote() {
+            if (!SELECTED_ELECTION_ID) {
+                alert("Please load an election before submitting your vote.");
+                return;
+            }
+
+            submitVoteButton.disabled = true;
+            submitVoteButton.textContent = "Submitting...";
+
+            let voteSucceeded = false;
+
+            try {
+                const selectedInputs = document.querySelectorAll(
+                    '#positionsContainer input[type="radio"]:checked, ' +
+                    '#positionsContainer input[type="checkbox"]:checked'
+                );
+
+                if (selectedInputs.length === 0) {
+                    alert("Please select at least one candidate.");
+                    return;
+                }
+
+                const votes = Array.from(selectedInputs).map((input) => ({
+                    position_id: input.dataset.positionId,
+                    candidate_id: input.value
+                }));
+
+                const confirmed = confirm(
+                    "Are you sure you want to submit your vote?\n\n" +
+                    "You will not be able to vote again in this election."
+                );
+
+                if (!confirmed) {
+                    return;
+                }
+
+                const { data, error } = await supabaseClient.rpc("cast_vote", {
+                    p_election_id: SELECTED_ELECTION_ID,
+                    p_votes: votes
+                });
+
+                if (error) {
+                    console.error("Vote submission error:", error);
+                    alert("Your vote could not be submitted.\n\n" + error.message);
+                    return;
+                }
+
+                console.log("Ballot submitted:", data);
+                voteSucceeded = true;
+                alert("Your vote has been submitted successfully.");
+
+                submitVoteButton.textContent = "Vote Submitted";
+                document.querySelectorAll("#positionsContainer input")
+                    .forEach((input) => {
+                        input.disabled = true;
+                    });
+            } catch (error) {
+                console.error("Unexpected voting error:", error);
+                alert("Something went wrong while submitting your vote.");
+            } finally {
+                if (!voteSucceeded) {
+                    submitVoteButton.disabled = false;
+                    submitVoteButton.textContent = "Submit Vote";
+                } else {
+                    submitVoteButton.disabled = true;
+                }
+            }
+        }
+
+        logoutButton.addEventListener("click", async () => {
+            logoutButton.disabled = true;
+            logoutButton.textContent = "Logging out...";
+
+            const success = await logoutUser();
+            if (success) {
+                window.location.href = "test.html";
+            } else {
+                logoutButton.disabled = false;
+                logoutButton.textContent = "Logout";
+                alert("Logout failed. Please try again.");
+            }
+        });
+
+        loadElectionButton.addEventListener("click", handleLoadElection);
+        submitVoteButton.addEventListener("click", submitVote);
+
+        async function initializeVotePage() {
+            showLoading();
+
+            const loggedIn = await isLoggedIn();
+            if (!loggedIn) {
+                showDenied("You must log in before voting.");
+                electionSelectionSection.style.display = "none";
+                return;
+            }
+
+            const electionsLoaded = await loadAvailableElections();
+            showElectionSelector();
+
+            if (!electionsLoaded) {
+                loadElectionButton.disabled = true;
+            }
+        }
+
+        initializeVotePage();
+    </script>
+</body>
+</html>
