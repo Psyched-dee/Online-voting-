@@ -545,6 +545,29 @@
 
     <script src="js/auth.js"></script>
 
+    ```
+<!-- Election Results Section -->
+<section id="resultsSection" style="margin: 30px 0; padding: 20px; border: 1px solid #444; border-radius: 10px;">
+
+    <h2>Election Results</h2>
+
+    <p>View the vote counts for each candidate in this election.</p>
+
+    <button id="loadResultsButton" type="button">
+        Load Election Results
+    </button>
+
+    <button id="publishResultsButton" type="button">
+    Publish Results
+    </button>
+
+    <p id="resultsMessage" role="status"></p>
+
+    <div id="resultsContainer"></div>
+
+</section>
+```
+
 
     <script>
 
@@ -2026,6 +2049,152 @@ async function deletePosition(position) {
 
             }
         );
+
+        /*
+ * Publish election results.
+ */
+
+const publishResultsButton =
+    document.getElementById("publishResultsButton");
+
+
+publishResultsButton.addEventListener("click", async () => {
+
+    const confirmed = confirm(
+        "Are you sure you want to publish the election results? Voters will be able to view them."
+    );
+
+    if (!confirmed) {
+        return;
+    }
+
+    publishResultsButton.disabled = true;
+    publishResultsButton.textContent = "Publishing...";
+
+    resultsMessage.textContent = "";
+
+    try {
+
+        const { error } = await supabaseClient
+            .from("elections")
+            .update({
+                results_published: true
+            })
+            .eq(
+                "id",
+                "6a1beb9d-24c7-4741-a128-0a9986210788"
+            );
+
+        if (error) {
+            throw error;
+        }
+
+        resultsMessage.textContent =
+            "Results published successfully! Eligible viewers can now access the results.";
+
+        publishResultsButton.textContent = "Results Published";
+
+    } catch (error) {
+
+        console.error("Publishing results failed:", error);
+
+        resultsMessage.textContent =
+            "Could not publish results. Check the browser console for details.";
+
+        publishResultsButton.disabled = false;
+        publishResultsButton.textContent = "Publish Results";
+
+    }
+
+});
+
+            /*
+ * Load election results.
+ */
+
+const loadResultsButton =
+    document.getElementById("loadResultsButton");
+
+const resultsMessage =
+    document.getElementById("resultsMessage");
+
+const resultsContainer =
+    document.getElementById("resultsContainer");
+
+
+loadResultsButton.addEventListener("click", async () => {
+
+    loadResultsButton.disabled = true;
+    loadResultsButton.textContent = "Loading results...";
+
+    resultsMessage.textContent = "";
+    resultsContainer.innerHTML = "";
+
+    try {
+
+        const { data, error } = await supabaseClient.rpc(
+            "get_election_results",
+            {
+                p_election_id: "6a1beb9d-24c7-4741-a128-0a9986210788"
+            }
+        );
+
+        if (error) {
+            throw error;
+        }
+
+        if (!data || data.length === 0) {
+
+            resultsMessage.textContent =
+                "No results are available yet.";
+
+            return;
+        }
+
+        let currentPosition = "";
+
+        data.forEach(result => {
+
+            if (result.position_name !== currentPosition) {
+
+                currentPosition = result.position_name;
+
+                const heading = document.createElement("h3");
+
+                heading.textContent = currentPosition;
+
+                resultsContainer.appendChild(heading);
+            }
+
+            const row = document.createElement("p");
+
+            row.textContent =
+                `${result.candidate_name}: ${result.total_votes} vote(s)`;
+
+            resultsContainer.appendChild(row);
+
+        });
+
+        resultsMessage.textContent =
+            "Election results loaded successfully.";
+
+    } catch (error) {
+
+        console.error("Could not load results:", error);
+
+        resultsMessage.textContent =
+            "Could not load results. Please check the browser console.";
+
+    } finally {
+
+        loadResultsButton.disabled = false;
+
+        loadResultsButton.textContent =
+            "Load Election Results";
+
+    }
+
+});
 
 
         /*
