@@ -227,6 +227,14 @@
 
                 <p id="message"></p>
 
+                <button type="button" id="createElectionButton" style="margin-bottom: 16px; background: #166534; color: white;">
+                    + Create New Election
+                </button>
+                <button type="button" id="cancelCreateElectionButton" hidden style="margin-bottom: 16px;">
+                    Cancel New Election
+                </button>
+
+                <p id="electionModeNotice" role="status"></p>
 
                 <form id="electionForm">
 
@@ -545,7 +553,6 @@
 
     <script src="js/auth.js"></script>
 
-    ```
 <!-- Election Results Section -->
 <section id="resultsSection" style="margin: 30px 0; padding: 20px; border: 1px solid #444; border-radius: 10px;">
 
@@ -566,7 +573,6 @@
     <div id="resultsContainer"></div>
 
 </section>
-```
 
 
     <script>
@@ -578,8 +584,17 @@
          * Test Election ID.
          */
 
-        const TEST_ELECTION_ID =
+        const DEFAULT_ELECTION_ID =
             "6a1beb9d-24c7-4741-a128-0a9986210788";
+
+        const requestedElectionId =
+            new URLSearchParams(window.location.search).get("election_id");
+
+        let SELECTED_ELECTION_ID =
+            requestedElectionId || DEFAULT_ELECTION_ID;
+
+        let isCreatingElection = false;
+        let currentAdminUser = null;
 
 
         /*
@@ -676,10 +691,11 @@
                 return;
             }
 
+            currentAdminUser = user;
 
             const isAdmin =
                 await isElectionAdmin(
-                    TEST_ELECTION_ID
+                    SELECTED_ELECTION_ID
                 );
 
 
@@ -710,7 +726,8 @@
              */
 
             await loadElection();
-        await loadPositionsAndCandidates();
+            await loadPositionsAndCandidates();
+            electionModeNotice.textContent = "Editing the selected election. Use Create New Election to add a separate election with a new ID.";
 
         }
 
@@ -735,7 +752,7 @@
                     status,
                     results_published
                 `)
-                .eq("id", TEST_ELECTION_ID)
+                .eq("id", SELECTED_ELECTION_ID)
                 .single();
 
 
@@ -847,7 +864,7 @@
                 is_active
             )
         `)
-        .eq("election_id", TEST_ELECTION_ID)
+        .eq("election_id", SELECTED_ELECTION_ID)
         .order("display_order", {
             ascending: true
         });
@@ -1631,7 +1648,7 @@ async function deletePosition(position) {
                 } = await supabaseClient
                     .from("positions")
                     .insert({
-                        election_id: TEST_ELECTION_ID,
+                        election_id: SELECTED_ELECTION_ID,
                         name: name,
                         max_selections: maxSelections,
                         display_order: displayOrder
@@ -1790,7 +1807,39 @@ async function deletePosition(position) {
 );
         
         /*
-         * Save election settings.
+         * Start/cancel new-election mode.
+         */
+        const createElectionButton = document.getElementById("createElectionButton");
+        const cancelCreateElectionButton = document.getElementById("cancelCreateElectionButton");
+        const electionModeNotice = document.getElementById("electionModeNotice");
+
+        createElectionButton.addEventListener("click", () => {
+            isCreatingElection = true;
+            electionForm.reset();
+            document.getElementById("status").value = "draft";
+            document.getElementById("resultsPublished").value = "false";
+            document.getElementById("displayElectionId").textContent = "A new ID will be assigned after creation.";
+            document.getElementById("displayStatus").textContent = "Not created yet";
+            electionModeNotice.textContent = "Create mode: this will insert a NEW election and will not overwrite the current one.";
+            electionModeNotice.className = "status";
+            saveButton.textContent = "Create Election";
+            createElectionButton.hidden = true;
+            cancelCreateElectionButton.hidden = false;
+            clearMessage();
+        });
+
+        cancelCreateElectionButton.addEventListener("click", async () => {
+            isCreatingElection = false;
+            createElectionButton.hidden = false;
+            cancelCreateElectionButton.hidden = true;
+            electionModeNotice.textContent = "Editing the selected election.";
+            saveButton.textContent = "Save Election Settings";
+            await loadElection();
+            clearMessage();
+        });
+
+        /*
+         * Save election settings or create a new election.
          */
 
         electionForm.addEventListener(
@@ -1879,8 +1928,17 @@ async function deletePosition(position) {
                 }
 
 
+                if (isCreatingElection && (!startsAt || !endsAt)) {
+                    showMessage(
+                        "Please set both a start time and an end time for a new election.",
+                        "error"
+                    );
+                    resetSaveButton();
+                    return;
+                }
+
                 /*
-                 * Prepare update.
+                 * Prepare election values.
                  */
 
                 const updates = {
@@ -1916,19 +1974,30 @@ async function deletePosition(position) {
                  * Send update to Supabase.
                  */
 
-                const {
-                    data,
-                    error
-                } = await supabaseClient
-                    .from("elections")
-                    .update(updates)
-                    .eq("id", TEST_ELECTION_ID)
-                    .select()
-                    .single();
+                let data;
+                let error;
 
+                if (isCreatingElection) {
+                    const result = await supabaseClient
+                        .from("elections")
+                        .insert({ ...updates, status: "draft", results_published: false })
+                        .select()
+                        .single();
+                    data = result.data;
+                    error = result.error;
+                } else {
+                    const result = await supabaseClient
+                        .from("elections")
+                        .update(updates)
+                        .eq("id", SELECTED_ELECTION_ID)
+                        .select()
+                        .single();
+                    data = result.data;
+                    error = result.error;
+                }
 
                 /*
-                 * Handle error.
+                 * Handle election insert/update error.
                  */
 
                 if (error) {
@@ -1951,27 +2020,46 @@ async function deletePosition(position) {
 
 
                 /*
-                 * Update succeeded.
+                 * If creating, associate the signed-in administrator
+                 * with the new election, then switch this page to it.
                  */
+                if (isCreatingElection) {
+                    const { error: adminLinkError } = await supabaseClient
+                        .from("election_admins")
+                        .insert({
+                            election_id: data.id,
+                            user_id: currentAdminUser.id
+                        });
 
-                console.log(
-                    "Updated election:",
-                    data
-                );
+                    if (adminLinkError) {
+                        console.error("Election created, but administrator link failed:", adminLinkError);
+                        showMessage(
+                            "The election was created, but linking your admin access failed: " + adminLinkError.message + ". Do not create it again; check election_admins permissions/policies.",
+                            "error"
+                        );
+                        document.getElementById("displayElectionId").textContent = data.id;
+                        document.getElementById("displayStatus").textContent = data.status;
+                        resetSaveButton();
+                        return;
+                    }
 
+                    SELECTED_ELECTION_ID = data.id;
+                    isCreatingElection = false;
+                    window.history.replaceState({}, "", window.location.pathname + "?election_id=" + encodeURIComponent(data.id));
+                    createElectionButton.hidden = false;
+                    cancelCreateElectionButton.hidden = true;
+                    electionModeNotice.textContent = "New election created. Future saves will edit this election.";
+                    electionModeNotice.className = "status";
+                    await loadElection();
+                    await loadPositionsAndCandidates();
+                    showMessage("New election created successfully. Its results are unpublished and its status is Draft.", "success");
+                } else {
+                    showMessage("Election settings saved successfully.", "success");
+                }
 
-                showMessage(
-                    "Election settings saved successfully.",
-                    "success"
-                );
+                console.log("Election saved:", data);
 
-
-                document.getElementById(
-                    "displayStatus"
-                ).textContent =
-                    data.status;
-
-
+                document.getElementById("displayStatus").textContent = data.status;
                 resetSaveButton();
 
             }
@@ -2008,7 +2096,7 @@ async function deletePosition(position) {
             saveButton.disabled = false;
 
             saveButton.textContent =
-                "Save Election Settings";
+                isCreatingElection ? "Create Election" : "Save Election Settings";
 
         }
 
@@ -2082,7 +2170,7 @@ publishResultsButton.addEventListener("click", async () => {
             })
             .eq(
                 "id",
-                "6a1beb9d-24c7-4741-a128-0a9986210788"
+                SELECTED_ELECTION_ID
             );
 
         if (error) {
@@ -2135,7 +2223,7 @@ loadResultsButton.addEventListener("click", async () => {
         const { data, error } = await supabaseClient.rpc(
             "get_election_results",
             {
-                p_election_id: "6a1beb9d-24c7-4741-a128-0a9986210788"
+                p_election_id: SELECTED_ELECTION_ID
             }
         );
 
