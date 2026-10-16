@@ -1,0 +1,1498 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Election Results | Online Voting</title>
+
+    <meta
+        name="description"
+        content="View election results on the Online Voting platform."
+    >
+
+    <style>
+        :root {
+            --background: #0b1120;
+            --surface: #141e30;
+            --surface-light: #1b2940;
+            --border: #293951;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+            --accent: #38bdf8;
+            --accent-dark: #0284c7;
+            --success: #34d399;
+            --danger: #fb7185;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            background: var(--background);
+            color: var(--text);
+            font-family: Arial, Helvetica, sans-serif;
+            line-height: 1.6;
+        }
+
+        button,
+        select,
+        a {
+            font: inherit;
+        }
+
+        button,
+        a {
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .navbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            padding: 18px 6%;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand {
+            font-size: 1.15rem;
+            font-weight: 800;
+        }
+
+        .brand span {
+            color: var(--accent);
+        }
+
+        .nav-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .nav-button {
+            display: inline-block;
+            padding: 9px 14px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text);
+            background: var(--surface-light);
+            text-decoration: none;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        .nav-button:hover {
+            border-color: var(--accent);
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .container {
+            width: min(100% - 32px, 1000px);
+            margin: auto;
+            padding: 40px 0 60px;
+        }
+
+        .hero {
+            margin-bottom: 30px;
+        }
+
+        .eyebrow {
+            margin-bottom: 10px;
+            color: var(--accent);
+            font-size: 0.78rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        h1 {
+            margin-bottom: 12px;
+            font-size: clamp(2rem, 5vw, 3rem);
+            line-height: 1.2;
+            overflow-wrap: anywhere;
+        }
+
+        .subtitle,
+        .muted {
+            color: var(--muted);
+        }
+
+        .selector-card {
+            margin: 24px 0;
+            padding: 20px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--surface);
+        }
+
+        .selector-card h2 {
+            margin-bottom: 8px;
+            font-size: 1.15rem;
+        }
+
+        .selector-card p {
+            margin-bottom: 14px;
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .selector-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        select {
+            flex: 1;
+            min-width: 200px;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: var(--background);
+            color: var(--text);
+        }
+
+        .primary-button {
+            padding: 12px 18px;
+            border: 0;
+            border-radius: 8px;
+            background: var(--accent-dark);
+            color: white;
+            cursor: pointer;
+        }
+
+        .primary-button:hover {
+            background: #0369a1;
+        }
+
+        .status-card {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin: 24px 0;
+            padding: 16px 18px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--surface);
+        }
+
+        .status-dot {
+            flex-shrink: 0;
+            width: 10px;
+            height: 10px;
+            margin-top: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+
+        .status-text {
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .status-text strong {
+            display: block;
+            margin-bottom: 3px;
+            color: var(--text);
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 16px;
+            margin: 28px 0 38px;
+        }
+
+        .summary-card {
+            padding: 22px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: var(--surface);
+        }
+
+        .summary-label {
+            margin-bottom: 8px;
+            color: var(--muted);
+            font-size: 0.9rem;
+        }
+
+        .summary-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+        }
+
+        .section-heading {
+            margin-bottom: 20px;
+        }
+
+        .section-heading h2 {
+            margin-bottom: 5px;
+            font-size: 1.45rem;
+        }
+
+        .section-heading p {
+            color: var(--muted);
+            font-size: 0.92rem;
+        }
+
+        .position-card {
+            margin-bottom: 24px;
+            padding: 24px;
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--surface);
+        }
+
+        .position-heading {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 22px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .position-heading h3 {
+            font-size: 1.2rem;
+        }
+
+        .position-tag {
+            padding: 5px 10px;
+            border-radius: 20px;
+            background: var(--surface-light);
+            color: var(--accent);
+            font-size: 0.75rem;
+        }
+
+        .candidate-row {
+            margin-bottom: 24px;
+        }
+
+        .candidate-row:last-child {
+            margin-bottom: 0;
+        }
+
+        .candidate-top {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 10px;
+        }
+
+        .candidate-info {
+            min-width: 0;
+        }
+
+        .candidate-name {
+            overflow-wrap: anywhere;
+            font-weight: 700;
+        }
+
+        .winner-badge {
+            display: inline-block;
+            margin-top: 7px;
+            padding: 3px 8px;
+            border-radius: 5px;
+            background: rgba(52, 211, 153, 0.12);
+            color: var(--success);
+            font-size: 0.72rem;
+            font-weight: 800;
+        }
+
+        .vote-number {
+            flex-shrink: 0;
+            text-align: right;
+        }
+
+        .vote-count {
+            display: block;
+            font-weight: 800;
+        }
+
+        .vote-percentage {
+            color: var(--muted);
+            font-size: 0.83rem;
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 9px;
+            overflow: hidden;
+            border-radius: 20px;
+            background: #26354a;
+        }
+
+        .progress-bar {
+            height: 100%;
+            border-radius: inherit;
+            background: linear-gradient(
+                90deg,
+                var(--accent-dark),
+                var(--accent)
+            );
+            transition: width 0.6s ease;
+        }
+
+        .candidate-row.is-leading .progress-bar {
+            background: linear-gradient(
+                90deg,
+                #059669,
+                var(--success)
+            );
+        }
+
+        .candidate-row.is-leading .winner-badge {
+            background: rgba(52, 211, 153, 0.12);
+        }
+
+        .message-box {
+            margin: 24px 0;
+            padding: 18px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: var(--surface);
+            color: var(--muted);
+            overflow-wrap: anywhere;
+        }
+
+        .message-box.error {
+            border-color: rgba(251, 113, 133, 0.5);
+            color: var(--danger);
+        }
+
+        .message-box.success {
+            color: var(--success);
+        }
+
+        .retry-button {
+            margin-top: 12px;
+            padding: 10px 16px;
+            border: 0;
+            border-radius: 8px;
+            background: var(--accent-dark);
+            color: white;
+            cursor: pointer;
+        }
+
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+            text-align: center;
+            font-size: 0.85rem;
+        }
+
+        [hidden] {
+            display: none !important;
+        }
+
+        @media (max-width: 600px) {
+            .navbar {
+                padding: 16px;
+            }
+
+            .container {
+                width: min(100% - 24px, 1000px);
+                padding-top: 28px;
+            }
+
+            .summary-grid {
+                gap: 10px;
+            }
+
+            .summary-card {
+                padding: 16px;
+            }
+
+            .summary-value {
+                font-size: 1.5rem;
+            }
+
+            .position-card {
+                padding: 17px;
+            }
+
+            .candidate-top {
+                gap: 8px;
+            }
+
+            .candidate-name {
+                font-size: 0.95rem;
+            }
+
+            .vote-count {
+                font-size: 0.95rem;
+            }
+
+            .selector-controls {
+                flex-direction: column;
+            }
+
+            .selector-controls select,
+            .selector-controls button {
+                width: 100%;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                transition: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header class="navbar">
+
+    <div class="brand">
+        ONLINE<span>VOTE</span>
+    </div>
+
+    <nav class="nav-actions" aria-label="Main navigation">
+
+        <a class="nav-button" href="vote.html">
+            Voting Page
+        </a>
+
+        <button
+            class="nav-button"
+            id="logoutButton"
+            type="button"
+        >
+            Log Out
+        </button>
+
+    </nav>
+
+</header>
+
+
+<main class="container">
+
+    <section class="hero">
+
+        <p class="eyebrow">Official Election Results</p>
+
+        <h1 id="electionTitle">Election Results</h1>
+
+        <p class="subtitle">
+            Select an election to view its results and candidate
+            vote counts.
+        </p>
+
+    </section>
+
+
+    <!-- Election selector -->
+
+    <section class="selector-card" id="selectorSection">
+
+        <h2>Select an Election</h2>
+
+        <p>
+            Choose an election from the list to load its results.
+        </p>
+
+        <div class="selector-controls">
+
+            <select id="electionSelect" aria-label="Select election">
+                <option value="">Loading elections...</option>
+            </select>
+
+            <button
+                class="primary-button"
+                id="loadElectionButton"
+                type="button"
+            >
+                View Results
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- Election status -->
+
+    <div
+        id="statusCard"
+        class="status-card"
+        aria-live="polite"
+    >
+
+        <span class="status-dot"></span>
+
+        <div class="status-text">
+
+            <strong id="statusHeading">
+                Waiting for election
+            </strong>
+
+            <span id="statusDescription">
+                Select an election to continue.
+            </span>
+
+        </div>
+
+    </div>
+
+
+    <!-- Messages -->
+
+    <div
+        id="messageBox"
+        class="message-box"
+        role="status"
+        aria-live="polite"
+    >
+        Choose an election to view its results.
+    </div>
+
+
+    <!-- Results -->
+
+    <section id="resultsContent" hidden>
+
+        <div class="summary-grid">
+
+            <div class="summary-card">
+
+                <p class="summary-label">
+                    Positions Contested
+                </p>
+
+                <p class="summary-value" id="positionsCount">
+                    0
+                </p>
+
+            </div>
+
+
+            <div class="summary-card">
+
+                <p class="summary-label">
+                    Candidate Selections
+                </p>
+
+                <p class="summary-value" id="totalSelections">
+                    0
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="section-heading">
+
+            <h2>Results by Position</h2>
+
+            <p>
+                Percentages show each candidate's share of the
+                recorded selections for their position.
+            </p>
+
+        </div>
+
+
+        <div id="resultsContainer"></div>
+
+    </section>
+
+
+    <footer class="footer">
+
+        Election results are displayed according to the
+        publication status and access rules configured by
+        the election administrator.
+
+    </footer>
+
+</main>
+
+
+<!-- Supabase -->
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script src="js/supabase.js"></script>
+<script src="js/auth.js"></script>
+
+
+<script>
+
+    // =========================================
+    // CONFIGURATION
+    // =========================================
+
+    const DEFAULT_ELECTION_ID =
+        "6a1beb9d-24c7-4741-a128-0a9986210788";
+
+    const urlParams = new URLSearchParams(
+        window.location.search
+    );
+
+    const urlElectionId =
+        urlParams.get("election_id");
+
+    let selectedElectionId =
+        urlElectionId || "";
+
+
+    // =========================================
+    // PAGE ELEMENTS
+    // =========================================
+
+    const electionTitle =
+        document.getElementById("electionTitle");
+
+    const electionSelect =
+        document.getElementById("electionSelect");
+
+    const loadElectionButton =
+        document.getElementById("loadElectionButton");
+
+    const selectorSection =
+        document.getElementById("selectorSection");
+
+    const statusHeading =
+        document.getElementById("statusHeading");
+
+    const statusDescription =
+        document.getElementById("statusDescription");
+
+    const messageBox =
+        document.getElementById("messageBox");
+
+    const resultsContent =
+        document.getElementById("resultsContent");
+
+    const resultsContainer =
+        document.getElementById("resultsContainer");
+
+    const positionsCount =
+        document.getElementById("positionsCount");
+
+    const totalSelections =
+        document.getElementById("totalSelections");
+
+    const logoutButton =
+        document.getElementById("logoutButton");
+
+
+    // =========================================
+    // MESSAGE HANDLING
+    // =========================================
+
+    function showMessage(message, type = "") {
+
+        messageBox.replaceChildren();
+
+        messageBox.textContent = message;
+
+        messageBox.className = "message-box";
+
+        if (type) {
+            messageBox.classList.add(type);
+        }
+
+        messageBox.hidden = false;
+    }
+
+
+    function showRetryMessage(message) {
+
+        messageBox.replaceChildren();
+
+        messageBox.className = "message-box error";
+
+        const text = document.createElement("p");
+
+        text.textContent = message;
+
+        const retryButton = document.createElement("button");
+
+        retryButton.type = "button";
+
+        retryButton.className = "retry-button";
+
+        retryButton.textContent = "Try Again";
+
+        retryButton.addEventListener(
+            "click",
+            loadResults
+        );
+
+        messageBox.append(text, retryButton);
+
+        messageBox.hidden = false;
+    }
+
+
+    // =========================================
+    // SAFE HTML ELEMENT CREATION
+    // =========================================
+
+    function createElement(tag, className, text = "") {
+
+        const element = document.createElement(tag);
+
+        if (className) {
+            element.className = className;
+        }
+
+        element.textContent = text;
+
+        return element;
+    }
+
+
+    // =========================================
+    // LOAD AVAILABLE ELECTIONS
+    // =========================================
+
+    async function loadElections() {
+
+        electionSelect.replaceChildren();
+
+        const loadingOption = document.createElement("option");
+
+        loadingOption.value = "";
+
+        loadingOption.textContent = "Loading elections...";
+
+        electionSelect.appendChild(loadingOption);
+
+        try {
+
+            const { data, error } = await supabaseClient
+                .from("elections")
+                .select("id, title, results_published")
+                .order("title", { ascending: true });
+
+            if (error) {
+                throw error;
+            }
+
+            electionSelect.replaceChildren();
+
+            if (!data || data.length === 0) {
+
+                const option = document.createElement("option");
+
+                option.value = "";
+
+                option.textContent = "No elections available";
+
+                electionSelect.appendChild(option);
+
+                showMessage(
+                    "No elections are currently available.",
+                    "error"
+                );
+
+                return;
+            }
+
+            const placeholder = document.createElement("option");
+
+            placeholder.value = "";
+
+            placeholder.textContent = "Choose an election";
+
+            electionSelect.appendChild(placeholder);
+
+
+            data.forEach(election => {
+
+                const option = document.createElement("option");
+
+                option.value = election.id;
+
+                option.textContent =
+                    election.title || "Untitled Election";
+
+                electionSelect.appendChild(option);
+
+            });
+
+
+            // Use the election ID in the URL when provided.
+            // Otherwise, use the existing test election if available.
+
+            const requestedElection = data.find(
+                election => election.id === selectedElectionId
+            );
+
+            const defaultElection = data.find(
+                election => election.id === DEFAULT_ELECTION_ID
+            );
+
+            if (requestedElection) {
+
+                electionSelect.value = requestedElection.id;
+
+                selectorSection.hidden = true;
+
+                await loadResults();
+
+            } else if (!urlElectionId && defaultElection) {
+
+                selectedElectionId = defaultElection.id;
+
+                electionSelect.value = defaultElection.id;
+
+                await loadResults();
+
+            } else {
+
+                selectorSection.hidden = false;
+
+                statusHeading.textContent =
+                    "Select an election";
+
+                statusDescription.textContent =
+                    "Choose an election to view its results.";
+
+                showMessage(
+                    "Select an election and click View Results."
+                );
+
+            }
+
+        } catch (error) {
+
+            console.error(
+                "Election loading error:",
+                error
+            );
+
+            showMessage(
+                "Could not load the elections. Check your connection and try again.",
+                "error"
+            );
+
+        }
+
+    }
+
+
+    // =========================================
+    // LOAD ELECTION DETAILS
+    // =========================================
+
+    async function loadElectionDetails() {
+
+        const { data, error } = await supabaseClient
+            .from("elections")
+            .select("id, title, results_published")
+            .eq("id", selectedElectionId)
+            .maybeSingle();
+
+        if (error) {
+            throw error;
+        }
+
+        if (!data) {
+            throw new Error("Election not found.");
+        }
+
+        electionTitle.textContent =
+            data.title || "Election Results";
+
+        if (data.results_published === true) {
+
+            statusHeading.textContent =
+                "Results officially published";
+
+            statusDescription.textContent =
+                "The administrator has published these results.";
+
+        } else {
+
+            statusHeading.textContent =
+                "Results not published";
+
+            statusDescription.textContent =
+                "The results have not been publicly published. Access is controlled by the database.";
+
+        }
+
+        return data;
+    }
+
+
+    // =========================================
+    // GROUP RESULTS BY POSITION
+    // =========================================
+
+    function groupResultsByPosition(data) {
+
+        const groups = new Map();
+
+        data.forEach(result => {
+
+            if (!groups.has(result.position_id)) {
+
+                groups.set(result.position_id, {
+                    id: result.position_id,
+                    name: result.position_name,
+                    displayOrder: Number(result.display_order) || 0,
+                    candidates: []
+                });
+
+            }
+
+            groups.get(result.position_id).candidates.push({
+
+                id: result.candidate_id,
+
+                name: result.candidate_name,
+
+                votes: Number(result.total_votes) || 0
+
+            });
+
+        });
+
+        return Array.from(groups.values())
+            .sort((a, b) => a.displayOrder - b.displayOrder);
+
+    }
+
+
+    // =========================================
+    // RENDER A POSITION AND ITS CANDIDATES
+    // =========================================
+
+    function renderPosition(position) {
+
+        const card = createElement(
+            "article",
+            "position-card"
+        );
+
+        const heading = createElement(
+            "div",
+            "position-heading"
+        );
+
+        const title = createElement(
+            "h3",
+            "",
+            position.name || "Unnamed Position"
+        );
+
+        const tag = createElement(
+            "span",
+            "position-tag",
+            `${position.candidates.length} candidate(s)`
+        );
+
+        heading.append(title, tag);
+
+        card.appendChild(heading);
+
+
+        const totalVotes = position.candidates.reduce(
+            (sum, candidate) => sum + candidate.votes,
+            0
+        );
+
+        const highestVotes = position.candidates.length
+            ? Math.max(
+                ...position.candidates.map(
+                    candidate => candidate.votes
+                )
+            )
+            : 0;
+
+
+        position.candidates.forEach(candidate => {
+
+            const percentage = totalVotes > 0
+                ? (candidate.votes / totalVotes) * 100
+                : 0;
+
+            const isLeading =
+                totalVotes > 0 &&
+                candidate.votes === highestVotes;
+
+            const row = createElement(
+                "div",
+                "candidate-row"
+            );
+
+            if (isLeading) {
+                row.classList.add("is-leading");
+            }
+
+
+            const top = createElement(
+                "div",
+                "candidate-top"
+            );
+
+            const info = createElement(
+                "div",
+                "candidate-info"
+            );
+
+            const name = createElement(
+                "div",
+                "candidate-name",
+                candidate.name || "Unnamed Candidate"
+            );
+
+            info.appendChild(name);
+
+
+            if (isLeading) {
+
+                let badgeText = "LEADING";
+
+                if (highestVotes === 0) {
+
+                    badgeText = "NO VOTES RECORDED";
+
+                } else {
+
+                    const tiedCandidates =
+                        position.candidates.filter(
+                            item => item.votes === highestVotes
+                        );
+
+                    if (tiedCandidates.length > 1) {
+                        badgeText = "TIED FOR LEAD";
+                    }
+
+                }
+
+                const badge = createElement(
+                    "span",
+                    "winner-badge",
+                    badgeText
+                );
+
+                info.appendChild(badge);
+
+            }
+
+
+            const voteNumber = createElement(
+                "div",
+                "vote-number"
+            );
+
+            const count = createElement(
+                "span",
+                "vote-count",
+                `${candidate.votes.toLocaleString()} vote(s)`
+            );
+
+            const percent = createElement(
+                "span",
+                "vote-percentage",
+                `${percentage.toFixed(1)}%`
+            );
+
+            voteNumber.append(count, percent);
+
+            top.append(info, voteNumber);
+
+
+            const track = createElement(
+                "div",
+                "progress-track"
+            );
+
+            track.setAttribute(
+                "role",
+                "progressbar"
+            );
+
+            track.setAttribute(
+                "aria-label",
+                `${candidate.name}: ${percentage.toFixed(1)} percent`
+            );
+
+            track.setAttribute("aria-valuemin", "0");
+
+            track.setAttribute("aria-valuemax", "100");
+
+            track.setAttribute(
+                "aria-valuenow",
+                percentage.toFixed(1)
+            );
+
+
+            const bar = createElement(
+                "div",
+                "progress-bar"
+            );
+
+            bar.style.width = `${percentage}%`;
+
+            track.appendChild(bar);
+
+            row.append(top, track);
+
+            card.appendChild(row);
+
+        });
+
+        return card;
+
+    }
+
+
+    // =========================================
+    // LOAD RESULTS FOR THE SELECTED ELECTION
+    // =========================================
+
+    async function loadResults() {
+
+        if (!selectedElectionId) {
+
+            showMessage(
+                "Please select an election first.",
+                "error"
+            );
+
+            return;
+        }
+
+        resultsContent.hidden = true;
+
+        resultsContainer.replaceChildren();
+
+        positionsCount.textContent = "0";
+
+        totalSelections.textContent = "0";
+
+        loadElectionButton.disabled = true;
+
+        showMessage("Loading election results...");
+
+        statusHeading.textContent = "Loading results";
+
+        statusDescription.textContent =
+            "Please wait while we retrieve the election data.";
+
+        try {
+
+            // Require a signed-in user.
+
+            const user = await getCurrentUser();
+
+            if (!user) {
+
+                window.location.href = "test.html";
+
+                return;
+            }
+
+
+            // Load the selected election's details.
+
+            await loadElectionDetails();
+
+
+            // The database function enforces result access.
+            // Admins may be permitted to view unpublished results,
+            // while ordinary users may need publication first.
+
+            const { data, error } = await supabaseClient.rpc(
+                "get_election_results",
+                {
+                    p_election_id: selectedElectionId
+                }
+            );
+
+            if (error) {
+                throw error;
+            }
+
+
+            if (!data || data.length === 0) {
+
+                showMessage(
+                    "No candidate results are available for this election."
+                );
+
+                resultsContent.hidden = true;
+
+                return;
+            }
+
+
+            // Group candidates by position.
+
+            const positions = groupResultsByPosition(data);
+
+
+            // Calculate the total recorded candidate selections.
+
+            const selectionTotal = data.reduce(
+                (sum, result) =>
+                    sum + (Number(result.total_votes) || 0),
+                0
+            );
+
+
+            // Update the summary cards.
+
+            positionsCount.textContent =
+                positions.length.toLocaleString();
+
+            totalSelections.textContent =
+                selectionTotal.toLocaleString();
+
+
+            // Render each position.
+
+            positions.forEach(position => {
+
+                const positionElement =
+                    renderPosition(position);
+
+                resultsContainer.appendChild(positionElement);
+
+            });
+
+
+            resultsContent.hidden = false;
+
+            showMessage(
+                "Election results loaded successfully.",
+                "success"
+            );
+
+
+        } catch (error) {
+
+            console.error(
+                "Failed to load election results:",
+                error
+            );
+
+            resultsContent.hidden = true;
+
+            const errorMessage =
+                String(error.message || "").toLowerCase();
+
+            if (
+                errorMessage.includes("not published") ||
+                errorMessage.includes("not authorized") ||
+                errorMessage.includes("permission denied") ||
+                errorMessage.includes("unauthorized")
+            ) {
+
+                statusHeading.textContent =
+                    "Results unavailable";
+
+                statusDescription.textContent =
+                    "You may not have permission to view these results yet.";
+
+                showMessage(
+                    "These results are unavailable. The election administrator may need to publish them, or your account may not have permission to view them.",
+                    "error"
+                );
+
+            } else if (
+                errorMessage.includes("election not found")
+            ) {
+
+                statusHeading.textContent =
+                    "Election not found";
+
+                statusDescription.textContent =
+                    "The selected election could not be found.";
+
+                showMessage(
+                    "The selected election could not be found. Please choose another election.",
+                    "error"
+                );
+
+            } else {
+
+                statusHeading.textContent =
+                    "Unable to load results";
+
+                statusDescription.textContent =
+                    "Please try again.";
+
+                showRetryMessage(
+                    "We could not load these results. Check your connection and try again."
+                );
+
+            }
+
+        } finally {
+
+            loadElectionButton.disabled = false;
+
+        }
+
+    }
+
+
+    // =========================================
+    // SELECT AN ELECTION
+    // =========================================
+
+    loadElectionButton.addEventListener(
+        "click",
+        async () => {
+
+            const electionId = electionSelect.value;
+
+            if (!electionId) {
+
+                showMessage(
+                    "Please choose an election from the list.",
+                    "error"
+                );
+
+                return;
+            }
+
+            selectedElectionId = electionId;
+
+            // Update the URL so the election has a direct link.
+
+            const newUrl = new URL(window.location.href);
+
+            newUrl.searchParams.set(
+                "election_id",
+                selectedElectionId
+            );
+
+            window.history.replaceState(
+                {},
+                "",
+                newUrl
+            );
+
+            selectorSection.hidden = false;
+
+            await loadResults();
+
+        }
+    );
+
+
+    // =========================================
+    // LOGOUT
+    // =========================================
+
+    logoutButton.addEventListener(
+        "click",
+        async () => {
+
+            logoutButton.disabled = true;
+
+            logoutButton.textContent = "Logging out...";
+
+            try {
+
+                const success = await logoutUser();
+
+                if (success) {
+
+                    window.location.href = "test.html";
+
+                } else {
+
+                    logoutButton.disabled = false;
+
+                    logoutButton.textContent = "Log Out";
+
+                    alert(
+                        "Logout failed. Please try again."
+                    );
+
+                }
+
+            } catch (error) {
+
+                console.error(
+                    "Logout error:",
+                    error
+                );
+
+                logoutButton.disabled = false;
+
+                logoutButton.textContent = "Log Out";
+
+                alert(
+                    "Logout failed. Please try again."
+                );
+
+            }
+
+        }
+    );
+
+
+    // =========================================
+    // START THE PAGE
+    // =========================================
+
+    async function startPage() {
+
+        try {
+
+            const user = await getCurrentUser();
+
+            if (!user) {
+
+                window.location.href = "test.html";
+
+                return;
+            }
+
+            await loadElections();
+
+        } catch (error) {
+
+            console.error(
+                "Page initialization error:",
+                error
+            );
+
+            showMessage(
+                "Could not initialize the results page. Please refresh and try again.",
+                "error"
+            );
+
+        }
+
+    }
+
+    startPage();
+
+</script>
+
+</body>
+</html>
