@@ -73,3 +73,30 @@ async function isElectionAdmin(electionId) {
 window.isElectionAdmin = isElectionAdmin;
 window.getCurrentUser = getCurrentUser;
 window.logoutUser = logoutUser;
+
+window.isElectionAdmin = async function (electionId) {
+    try {
+        const user = await window.getCurrentUser();
+
+        if (!user || !electionId) {
+            return false;
+        }
+
+        const { data, error } = await window.supabaseClient
+            .from("election_admins")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("election_id", electionId)
+            .maybeSingle();
+
+        if (error) {
+            console.error("Error checking election admin:", error);
+            return false;
+        }
+
+        return !!data;
+    } catch (error) {
+        console.error("Unexpected error checking election admin:", error);
+        return false;
+    }
+};
