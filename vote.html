@@ -661,6 +661,24 @@
 
         loadElectionButton.addEventListener("click", handleLoadElection);
         submitVoteButton.addEventListener("click", submitVote);
+        
+    // Check whether the voter is logged in
+async function isLoggedIn() {
+    try {
+        const { data, error } = await window.supabaseClient.auth.getUser();
+
+        if (error) {
+            console.error("Login check failed:", error.message);
+            return false;
+        }
+
+        return !!data.user;
+    } catch (error) {
+        console.error("Unexpected login check error:", error);
+        return false;
+    }
+}
+        
 
         async function initializeVotePage() {
             showLoading();
