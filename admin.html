@@ -13,135 +13,89 @@
     <title>Election Admin Dashboard</title>
 
     <style>
-
-        * {
-            box-sizing: border-box;
+        :root {
+            --navy: #10233f;
+            --navy-deep: #0a172b;
+            --teal: #0f9f91;
+            --teal-dark: #087f75;
+            --page: #f3f6fb;
+            --surface: #ffffff;
+            --text: #18263b;
+            --muted: #68778d;
+            --border: #e1e8f0;
+            --danger: #b42335;
+            --shadow: 0 12px 32px rgba(16, 35, 63, .07);
         }
-
+        * { box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
         body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-            background: #f5f7fa;
-            color: #1f2937;
+            margin: 0; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+            background: var(--page); color: var(--text); line-height: 1.55;
         }
-
         header {
-            background: #111827;
-            color: white;
-            padding: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 15px;
+            background: linear-gradient(115deg, var(--navy-deep), var(--navy)); color: #fff;
+            min-height: 90px; padding: 22px max(22px, calc((100% - 1120px) / 2));
+            display: flex; justify-content: space-between; align-items: center; gap: 18px;
+            box-shadow: 0 5px 20px rgba(10,23,43,.15);
         }
-
-        header h1 {
-            margin: 0;
-            font-size: 22px;
-        }
-
-        main {
-            max-width: 1000px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-
+        header h1 { margin: 0; font-size: clamp(1.2rem, 2.5vw, 1.65rem); letter-spacing: -.035em; }
+        header h1::before { content: "◆"; color: #50d5c4; font-size: .8em; margin-right: 11px; }
+        main { width: min(1120px, 100%); margin: 30px auto 60px; padding: 0 22px; }
         .card {
-            background: white;
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 20px;
-            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.08);
+            background: var(--surface); border: 1px solid rgba(225,232,240,.85); border-radius: 18px;
+            padding: clamp(20px, 3vw, 30px); margin-bottom: 22px; box-shadow: var(--shadow);
         }
-
-        .card h2 {
-            margin-top: 0;
+        .card h2 { margin: 0 0 12px; font-size: 1.25rem; letter-spacing: -.02em; }
+        .card h3 { margin-top: 0; font-size: 1.03rem; }
+        p { color: var(--muted); }
+        .form-group { margin-bottom: 18px; }
+        .form-group label { display: block; margin-bottom: 7px; color: #34445a; font-weight: 650; font-size: .93rem; }
+        input, textarea, select {
+            display: block; width: 100%; padding: 12px 13px; border: 1px solid #d5deea; border-radius: 10px;
+            background: #fff; color: var(--text); font-size: 15px; font-family: inherit; transition: border-color .2s, box-shadow .2s;
         }
-
-        .form-group {
-            margin-bottom: 18px;
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 7px;
-            font-weight: 600;
-        }
-
-        input,
-        textarea,
-        select {
-            width: 100%;
-            padding: 11px;
-            border: 1px solid #d1d5db;
-            border-radius: 8px;
-            font-size: 15px;
-            font-family: inherit;
-        }
-
-        textarea {
-            min-height: 110px;
-            resize: vertical;
-        }
-
+        input:focus, textarea:focus, select:focus { outline: none; border-color: var(--teal); box-shadow: 0 0 0 3px rgba(15,159,145,.13); }
+        textarea { min-height: 110px; resize: vertical; }
         button {
-            border: none;
-            border-radius: 8px;
-            padding: 10px 16px;
-            cursor: pointer;
-            font-size: 14px;
+            border: 1px solid transparent; border-radius: 10px; padding: 11px 16px; cursor: pointer; font: inherit;
+            font-size: .91rem; font-weight: 650; background: #e9eef5; color: var(--navy); transition: transform .15s, background .15s, box-shadow .15s;
         }
-
-        #logoutButton {
-            background: white;
-            color: #111827;
+        button:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 5px 12px rgba(16,35,63,.1); }
+        button:disabled { opacity: .58; cursor: not-allowed; }
+        #logoutButton { background: rgba(255,255,255,.1); color: white; border-color: rgba(255,255,255,.35); }
+        #saveButton { background: var(--teal); color: white; width: 100%; padding: 14px; font-weight: 750; }
+        #saveButton:hover:not(:disabled) { background: var(--teal-dark); }
+        #returnButton { background: var(--navy); color: white; }
+        #createElectionButton, #publishResultsButton { background: var(--teal-dark) !important; color: white !important; }
+        #addPositionButton, #addCandidateButton { background: var(--navy); color: #fff; }
+        #cancelCreateElectionButton { background: #edf1f6; color: var(--navy); }
+        .success, .error { padding: 13px 15px; border-radius: 11px; margin: 0 0 16px; font-weight: 550; }
+        .success { color: #176344; background: #e4f8ed; border: 1px solid #b8ebcf; }
+        .error { color: #982735; background: #fff0f1; border: 1px solid #f3c7cc; }
+        .status { display: inline-block; padding: 7px 12px; border-radius: 999px; background: #e8f7f5; color: #087f75; font-size: .9rem; font-weight: 650; }
+        #displayElectionId { overflow-wrap: anywhere; font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: .9rem; }
+        #electionSelectorCard { border-left: 4px solid var(--teal); }
+        #electionSelector { max-width: 100%; }
+        .helper-text { margin-top: 6px; font-size: .88rem; }
+        #displayStatus { display: inline-block; padding: 5px 11px; background: #e8f7f5; color: #087f75; border-radius: 99px; font-weight: 700; }
+        #positionsContainer > div { background: #fbfcfe; border: 1px solid var(--border) !important; border-radius: 13px !important; padding: 18px !important; }
+        #positionsContainer > div > div { margin-top: 12px; }
+        #positionsContainer button { margin: 7px 5px 0 0 !important; }
+        #positionsContainer button:nth-of-type(2), #positionsContainer button:last-child { background: #fff0f1; color: var(--danger); }
+        #positionsContainer button:first-of-type { background: #e9f2ff; color: #245a9b; }
+        #resultsSection { background: var(--surface); border: 1px solid var(--border) !important; border-radius: 18px !important; box-shadow: var(--shadow); }
+        #resultsSection button { margin: 5px 6px 8px 0; }
+        #resultsContainer h3 { color: var(--navy); border-bottom: 1px solid var(--border); padding-bottom: 8px; margin-top: 22px; }
+        #resultsContainer p { background: #f7f9fc; border-radius: 8px; padding: 9px 12px; }
+        [hidden] { display: none !important; }
+        @media (max-width: 640px) {
+            header { padding: 18px 16px; min-height: 76px; }
+            header h1 { max-width: 70%; line-height: 1.25; }
+            main { margin-top: 18px; padding: 0 13px; }
+            .card { padding: 19px; border-radius: 14px; }
+            button { max-width: 100%; }
+            #createElectionButton, #cancelCreateElectionButton { width: 100%; margin-right: 0 !important; }
         }
-
-        #saveButton {
-            background: #111827;
-            color: white;
-            width: 100%;
-            padding: 13px;
-            font-weight: 600;
-        }
-
-        #saveButton:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        #returnButton {
-            background: #111827;
-            color: white;
-        }
-
-        .success {
-            color: #166534;
-            background: #dcfce7;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-
-        .error {
-            color: #991b1b;
-            background: #fee2e2;
-            padding: 12px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-        }
-
-        .status {
-            display: inline-block;
-            padding: 6px 10px;
-            border-radius: 20px;
-            background: #e5e7eb;
-        }
-
-        [hidden] {
-            display: none !important;
-        }
-
     </style>
 
 </head>
@@ -218,6 +172,19 @@
 
             </div>
 
+
+            <!-- Switch between elections managed by this administrator -->
+            <div class="card" id="electionSelectorCard">
+                <h2>Manage an Election</h2>
+                <p>Choose which election you want to manage. Only elections linked to your administrator account are listed.</p>
+                <div class="form-group">
+                    <label for="electionSelector">Select Election</label>
+                    <select id="electionSelector" disabled>
+                        <option value="">Loading your elections...</option>
+                    </select>
+                    <p class="helper-text" id="electionSelectorMessage" role="status">Loading elections assigned to your account.</p>
+                </div>
+            </div>
 
             <!-- Election Settings -->
 
@@ -306,6 +273,10 @@
                                 Draft
                             </option>
 
+                            <option value="scheduled">
+                                Scheduled
+                            </option>
+
                             <option value="open">
                                 Open
                             </option>
@@ -325,7 +296,7 @@
                             Results Published
                         </label>
 
-                        <select id="resultsPublished">
+                        <select id="resultsPublished" disabled aria-describedby="resultsPublishedHelp">
 
                             <option value="false">
                                 No
@@ -336,6 +307,9 @@
                             </option>
 
                         </select>
+                        <p class="helper-text" id="resultsPublishedHelp">
+                            This status is managed separately. Close the election first, then use Publish Results below.
+                        </p>
 
                     </div>
 
@@ -554,7 +528,7 @@
     <script src="js/auth.js"></script>
 
 <!-- Election Results Section -->
-<section id="resultsSection" style="margin: 30px 0; padding: 20px; border: 1px solid #444; border-radius: 10px;">
+<section id="resultsSection" hidden style="margin: 30px 0; padding: 20px; border: 1px solid #444; border-radius: 10px;">
 
     <h2>Election Results</h2>
 
@@ -592,6 +566,8 @@
 
         let SELECTED_ELECTION_ID =
             requestedElectionId || DEFAULT_ELECTION_ID;
+
+        let adminElections = [];
 
         let isCreatingElection = false;
         let currentAdminUser = null;
@@ -677,6 +653,84 @@
          * Protect the admin page.
          */
 
+        const electionSelector = document.getElementById("electionSelector");
+        const electionSelectorMessage = document.getElementById("electionSelectorMessage");
+
+        async function loadAdminElectionOptions(user) {
+            electionSelector.disabled = true;
+            electionSelector.innerHTML = '<option value="">Loading your elections...</option>';
+            electionSelectorMessage.textContent = "Loading elections assigned to your account.";
+
+            try {
+                const { data: adminRows, error: adminRowsError } = await supabaseClient
+                    .from("election_admins")
+                    .select("election_id")
+                    .eq("user_id", user.id);
+                if (adminRowsError) throw adminRowsError;
+
+                const electionIds = [...new Set((adminRows || []).map(row => row.election_id).filter(Boolean))];
+                if (electionIds.length === 0) {
+                    electionSelector.innerHTML = '<option value="">No elections assigned</option>';
+                    electionSelectorMessage.textContent = "No elections are linked to this administrator account.";
+                    return false;
+                }
+
+                const { data: elections, error: electionsError } = await supabaseClient
+                    .from("elections")
+                    .select("id, title, status, created_at")
+                    .in("id", electionIds)
+                    .order("created_at", { ascending: false });
+                if (electionsError) throw electionsError;
+
+                adminElections = elections || [];
+                if (adminElections.length === 0) {
+                    electionSelector.innerHTML = '<option value="">No elections found</option>';
+                    electionSelectorMessage.textContent = "Your admin records were found, but no election details could be loaded.";
+                    return false;
+                }
+
+                if (requestedElectionId) {
+                    if (!adminElections.some(election => election.id === requestedElectionId)) {
+                        electionSelector.innerHTML = '<option value="">Election access not found</option>';
+                        electionSelectorMessage.textContent = "The election in this URL is not assigned to your account.";
+                        return false;
+                    }
+                    SELECTED_ELECTION_ID = requestedElectionId;
+                } else if (!adminElections.some(election => election.id === SELECTED_ELECTION_ID)) {
+                    SELECTED_ELECTION_ID = adminElections.some(election => election.id === DEFAULT_ELECTION_ID)
+                        ? DEFAULT_ELECTION_ID
+                        : adminElections[0].id;
+                }
+
+                electionSelector.innerHTML = "";
+                adminElections.forEach(election => {
+                    const option = document.createElement("option");
+                    option.value = election.id;
+                    option.textContent = `${election.title || "Untitled election"} — ${(election.status || "unknown").toUpperCase()}`;
+                    electionSelector.appendChild(option);
+                });
+                electionSelector.value = SELECTED_ELECTION_ID;
+                electionSelector.disabled = false;
+                electionSelectorMessage.textContent = `${adminElections.length} election(s) available to manage.`;
+                return true;
+            } catch (error) {
+                console.error("Could not load administrator elections:", error);
+                electionSelector.innerHTML = '<option value="">Could not load elections</option>';
+                electionSelectorMessage.textContent = "Could not load your elections. Refresh the page and check the browser console if this continues.";
+                return false;
+            }
+        }
+
+        electionSelector.addEventListener("change", () => {
+            const nextElectionId = electionSelector.value;
+            if (!nextElectionId || nextElectionId === SELECTED_ELECTION_ID) return;
+            electionSelector.disabled = true;
+            electionSelectorMessage.textContent = "Switching election...";
+            const nextUrl = new URL(window.location.href);
+            nextUrl.searchParams.set("election_id", nextElectionId);
+            window.location.href = nextUrl.toString();
+        });
+
         async function protectAdminPage() {
 
             const user =
@@ -692,6 +746,13 @@
             }
 
             currentAdminUser = user;
+
+            const hasAvailableElection = await loadAdminElectionOptions(user);
+            if (!hasAvailableElection) {
+                loadingSection.hidden = true;
+                deniedSection.hidden = false;
+                return;
+            }
 
             const isAdmin =
                 await isElectionAdmin(
@@ -716,6 +777,7 @@
             loadingSection.hidden = true;
 
             dashboardSection.hidden = false;
+            document.getElementById("resultsSection").hidden = false;
 
             adminEmail.textContent =
                 "Signed in as: " + user.email;
@@ -895,6 +957,13 @@
     positionsContainer.innerHTML = "";
 
     positions.forEach((position) => {
+            // Add this position to the Add Candidate dropdown
+    const option = document.createElement("option");
+
+    option.value = position.id;
+    option.textContent = position.name;
+
+    candidatePosition.appendChild(option);
 
     // =========================
     // POSITION CARD
@@ -1928,9 +1997,9 @@ async function deletePosition(position) {
                 }
 
 
-                if (isCreatingElection && (!startsAt || !endsAt)) {
+                if (!startsAt || !endsAt) {
                     showMessage(
-                        "Please set both a start time and an end time for a new election.",
+                        "Please set both a start time and an end time.",
                         "error"
                     );
                     resetSaveButton();
@@ -1938,36 +2007,9 @@ async function deletePosition(position) {
                 }
 
                 /*
-                 * Prepare election values.
+                 * Election publication is managed separately.
+                 * Saving settings must not publish results.
                  */
-
-                const updates = {
-
-                    title: title,
-
-                    description:
-                        description || null,
-
-                    starts_at:
-                        startsAt
-                            ? new Date(
-                                startsAt
-                              ).toISOString()
-                            : null,
-
-                    ends_at:
-                        endsAt
-                            ? new Date(
-                                endsAt
-                              ).toISOString()
-                            : null,
-
-                    status: status,
-
-                    results_published:
-                        resultsPublished
-
-                };
 
 
                 /*
@@ -1978,20 +2020,29 @@ async function deletePosition(position) {
                 let error;
 
                 if (isCreatingElection) {
-                    const result = await supabaseClient
-                        .from("elections")
-                        .insert({ ...updates, status: "draft", results_published: false })
-                        .select()
-                        .single();
-                    data = result.data;
+                    // The database function creates the election and links its admin atomically.
+                    const result = await supabaseClient.rpc("create_election", {
+                        p_title: title,
+                        p_description: description || null,
+                        p_starts_at: new Date(startsAt).toISOString(),
+                        p_ends_at: new Date(endsAt).toISOString()
+                    });
+                    data = result.data; // The function returns the new election UUID.
                     error = result.error;
                 } else {
-                    const result = await supabaseClient
-                        .from("elections")
-                        .update(updates)
-                        .eq("id", SELECTED_ELECTION_ID)
-                        .select()
-                        .single();
+                    // Use the secure database function instead of direct table UPDATE.
+                    const result = await supabaseClient.rpc(
+                        "update_election_settings",
+                        {
+                            p_election_id: SELECTED_ELECTION_ID,
+                            p_title: title,
+                            p_description: description || null,
+                            p_starts_at: new Date(startsAt).toISOString(),
+                            p_ends_at: new Date(endsAt).toISOString(),
+                            p_status: status,
+                            p_results_published: resultsPublished
+                        }
+                    );
                     data = result.data;
                     error = result.error;
                 }
@@ -2024,42 +2075,32 @@ async function deletePosition(position) {
                  * with the new election, then switch this page to it.
                  */
                 if (isCreatingElection) {
-                    const { error: adminLinkError } = await supabaseClient
-                        .from("election_admins")
-                        .insert({
-                            election_id: data.id,
-                            user_id: currentAdminUser.id
-                        });
-
-                    if (adminLinkError) {
-                        console.error("Election created, but administrator link failed:", adminLinkError);
-                        showMessage(
-                            "The election was created, but linking your admin access failed: " + adminLinkError.message + ". Do not create it again; check election_admins permissions/policies.",
-                            "error"
-                        );
-                        document.getElementById("displayElectionId").textContent = data.id;
-                        document.getElementById("displayStatus").textContent = data.status;
+                    // create_election returns the UUID as a string, not an election object.
+                    const newElectionId = data;
+                    if (!newElectionId || typeof newElectionId !== "string") {
+                        showMessage("The election function did not return a valid election ID. Check Supabase before trying again.", "error");
                         resetSaveButton();
                         return;
                     }
 
-                    SELECTED_ELECTION_ID = data.id;
+                    SELECTED_ELECTION_ID = newElectionId;
                     isCreatingElection = false;
-                    window.history.replaceState({}, "", window.location.pathname + "?election_id=" + encodeURIComponent(data.id));
+                    window.history.replaceState({}, "", window.location.pathname + "?election_id=" + encodeURIComponent(newElectionId));
                     createElectionButton.hidden = false;
                     cancelCreateElectionButton.hidden = true;
                     electionModeNotice.textContent = "New election created. Future saves will edit this election.";
                     electionModeNotice.className = "status";
                     await loadElection();
                     await loadPositionsAndCandidates();
-                    showMessage("New election created successfully. Its results are unpublished and its status is Draft.", "success");
+                    showMessage("New election created successfully. It is saved as Draft, with results unpublished.", "success");
                 } else {
                     showMessage("Election settings saved successfully.", "success");
+                    document.getElementById("displayStatus").textContent = status;
+                    await loadElection();
+                    await loadAdminElectionOptions(currentAdminUser);
                 }
 
                 console.log("Election saved:", data);
-
-                document.getElementById("displayStatus").textContent = data.status;
                 resetSaveButton();
 
             }
@@ -2163,24 +2204,24 @@ publishResultsButton.addEventListener("click", async () => {
 
     try {
 
-        const { error } = await supabaseClient
-            .from("elections")
-            .update({
-                results_published: true
-            })
-            .eq(
-                "id",
-                SELECTED_ELECTION_ID
-            );
+        const { error } = await supabaseClient.rpc(
+            "publish_election_results",
+            {
+                p_election_id: SELECTED_ELECTION_ID,
+                p_publish: true
+            }
+        );
 
         if (error) {
             throw error;
         }
 
+        document.getElementById("resultsPublished").value = "true";
         resultsMessage.textContent =
             "Results published successfully! Eligible viewers can now access the results.";
 
         publishResultsButton.textContent = "Results Published";
+        await loadElection();
 
     } catch (error) {
 
