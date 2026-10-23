@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0b1120">
+
+    <title>Sign In | Online Voting</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+
+    <style>
+        :root {
+            --background: #0b1120;
+            --card: #151f32;
+            --text: #edf2ff;
+            --muted: #a5b2c9;
+            --primary: #6d8cff;
+            --border: #293750;
+            --danger: #ff9a9a;
+            --success: #79f0bc;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: grid;
+            place-items: center;
+            padding: 24px;
+            background:
+                radial-gradient(ellipse at top, #1b2d4b 0%, transparent 60%),
+                var(--background);
+            color: var(--text);
+            font-family: Arial, sans-serif;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            padding: 34px;
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            background: var(--card);
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.3);
+        }
+
+        .brand {
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .brand-icon {
+            width: 58px;
+            height: 58px;
+            margin: 0 auto 16px;
+            display: grid;
+            place-items: center;
+            border-radius: 16px;
+            background: #25385d;
+            color: #a9bcff;
+            font-size: 28px;
+        }
+
+        h1 {
+            margin: 0 0 10px;
+            font-size: 27px;
+        }
+
+        .brand p,
+        .help {
+            color: var(--muted);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        label {
+            display: block;
+            margin: 18px 0 8px;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        input {
+            width: 100%;
+            padding: 13px 14px;
+            border: 1px solid var(--border);
+            border-radius: 9px;
+            background: #0e1728;
+            color: var(--text);
+            font-size: 15px;
+        }
+
+        input:focus {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        button {
+            width: 100%;
+            margin-top: 24px;
+            padding: 14px;
+            border: 0;
+            border-radius: 9px;
+            background: var(--primary);
+            color: white;
+            font-weight: bold;
+            font-size: 15px;
+            cursor: pointer;
+        }
+
+        button:disabled {
+            opacity: 0.6;
+            cursor: wait;
+        }
+
+        #status {
+            min-height: 22px;
+            margin-top: 18px;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-wrap: anywhere;
+        }
+
+        #status.error {
+            color: var(--danger);
+        }
+
+        #status.success {
+            color: var(--success);
+        }
+
+        .help {
+            margin-top: 24px;
+            text-align: center;
+        }
+
+        footer {
+            margin-top: 24px;
+            color: var(--muted);
+            font-size: 12px;
+            text-align: center;
+        }
+
+        @media (max-width: 480px) {
+            .login-card {
+                padding: 25px 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="login-card">
+        <div class="brand">
+            <div class="brand-icon" aria-hidden="true">✓</div>
+            <h1>Online Voting</h1>
+            <p>Sign in securely to access your election portal.</p>
+        </div>
+
+        <form id="loginForm">
+            <label for="email">Email address</label>
+            <input
+                id="email"
+                type="email"
+                autocomplete="username"
+                placeholder="Enter your email"
+                required
+            >
+
+            <label for="password">Password</label>
+            <input
+                id="password"
+                type="password"
+                autocomplete="current-password"
+                placeholder="Enter your password"
+                required
+            >
+
+            <button id="loginButton" type="submit">Sign In</button>
+        </form>
+
+        <p id="status" role="status" aria-live="polite"></p>
+
+        <p class="help">
+            Use the account provided to you by your election administrator.
+        </p>
+
+        <footer>Online Voting Platform</footer>
+    </main>
+
+    <script>
+        const form = document.getElementById("loginForm");
+        const emailInput = document.getElementById("email");
+        const passwordInput = document.getElementById("password");
+        const loginButton = document.getElementById("loginButton");
+        const statusElement = document.getElementById("status");
+
+        function showStatus(message, type = "") {
+            statusElement.textContent = message;
+            statusElement.className = type;
+        }
+
+        async function routeAuthenticatedUser(user) {
+            showStatus("Login successful. Checking your access…");
+
+            const { data: adminRecords, error } = await supabaseClient
+                .from("election_admins")
+                .select("election_id")
+                .eq("user_id", user.id)
+                .limit(1);
+
+            if (error) {
+                console.error("Administrator lookup failed:", error);
+                showStatus(
+                    "We couldn't verify your access. Please try again or contact the election administrator.",
+                    "error"
+                );
+                return;
+            }
+
+            if (adminRecords && adminRecords.length > 0) {
+                window.location.replace("admin.html");
+            } else {
+                window.location.replace("dashboard.html");
+            }
+        }
+
+        form.addEventListener("submit", async (event) => {
+            event.preventDefault();
+
+            loginButton.disabled = true;
+            loginButton.textContent = "Signing in…";
+            showStatus("Authenticating…");
+
+            try {
+                const { data, error } =
+                    await supabaseClient.auth.signInWithPassword({
+                        email: emailInput.value.trim(),
+                        password: passwordInput.value
+                    });
+
+                if (error) {
+                    showStatus(
+                        "Sign-in failed. Check your credentials and try again.",
+                        "error"
+                    );
+                    return;
+                }
+
+                if (!data.user) {
+                    showStatus(
+                        "Login did not return a user account. Please try again.",
+                        "error"
+                    );
+                    return;
+                }
+
+                await routeAuthenticatedUser(data.user);
+
+            } catch (error) {
+                console.error("Sign-in error:", error);
+                showStatus(
+                    "An unexpected error occurred. Check your connection and try again.",
+                    "error"
+                );
+            } finally {
+                loginButton.disabled = false;
+                loginButton.textContent = "Sign In";
+            }
+        });
+
+        async function checkExistingSession() {
+            try {
+                const { data, error } =
+                    await supabaseClient.auth.getSession();
+
+                if (error) {
+                    console.error("Session check failed:", error);
+                    return;
+                }
+
+                if (data.session?.user) {
+                    await routeAuthenticatedUser(data.session.user);
+                }
+            } catch (error) {
+                console.error("Session check failed:", error);
+            }
+        }
+
+        checkExistingSession();
+    </script>
+</body>
+</html>
