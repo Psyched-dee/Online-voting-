@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Voter Dashboard | Online Voting</title>
+
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="js/supabase.js"></script>
+    <script src="js/auth.js"></script>
+
+    <style>
+        :root {
+            --background: #0b1120;
+            --card: #151f32;
+            --card-light: #1d2a40;
+            --text: #edf2ff;
+            --muted: #a5b2c9;
+            --primary: #6d8cff;
+            --success: #37d99a;
+            --warning: #ffc857;
+            --danger: #ff7474;
+            --border: #293750;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: var(--background);
+            color: var(--text);
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            padding: 20px 6%;
+            background: #111a2b;
+            border-bottom: 1px solid var(--border);
+        }
+
+        header h2 {
+            margin: 0;
+            font-size: 21px;
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        button,
+        .button {
+            border: none;
+            border-radius: 8px;
+            padding: 11px 15px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            text-decoration: none;
+            display: inline-block;
+            text-align: center;
+            transition: 0.2s;
+        }
+
+        button:hover,
+        .button:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        button:disabled {
+            opacity: 0.45;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .secondary {
+            background: var(--card-light);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .logout {
+            background: #40232d;
+            color: #ffb4bc;
+        }
+
+        main {
+            max-width: 1150px;
+            margin: auto;
+            padding: 35px 20px 60px;
+        }
+
+        .welcome {
+            margin-bottom: 30px;
+        }
+
+        .welcome h1 {
+            margin: 0 0 10px;
+            font-size: clamp(26px, 4vw, 36px);
+        }
+
+        .welcome p {
+            color: var(--muted);
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 16px;
+            margin-bottom: 35px;
+        }
+
+        .summary-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 22px;
+        }
+
+        .summary-card p {
+            margin: 0 0 12px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .summary-card h2 {
+            margin: 0;
+            font-size: 30px;
+        }
+
+        .section-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .section-heading h2 {
+            margin: 0;
+            font-size: 23px;
+        }
+
+        #electionList {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 20px;
+        }
+
+        .election-card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 23px;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+
+        .card-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .election-card h3 {
+            margin: 0;
+            font-size: 20px;
+            line-height: 1.4;
+            overflow-wrap: anywhere;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+
+        .badge.open {
+            color: #79f0bc;
+            background: #153b32;
+        }
+
+        .badge.upcoming {
+            color: #ffda80;
+            background: #443719;
+        }
+
+        .badge.closed {
+            color: #ff9a9a;
+            background: #44262e;
+        }
+
+        .badge.neutral {
+            color: #c2cde0;
+            background: #2b374b;
+        }
+
+        .description {
+            color: var(--muted);
+            line-height: 1.6;
+            margin: 0 0 18px;
+            overflow-wrap: anywhere;
+        }
+
+        .election-details {
+            border-top: 1px solid var(--border);
+            padding-top: 15px;
+            margin-top: auto;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 15px;
+            margin: 11px 0;
+            font-size: 13px;
+        }
+
+        .detail-row span:first-child {
+            color: var(--muted);
+        }
+
+        .detail-row span:last-child {
+            text-align: right;
+            overflow-wrap: anywhere;
+        }
+
+        .eligibility {
+            margin: 16px 0;
+            padding: 12px;
+            border-radius: 8px;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .eligible {
+            background: #153b32;
+            color: #8cf0c5;
+        }
+
+        .not-eligible {
+            background: #44262e;
+            color: #ffb2b2;
+        }
+
+        .unknown {
+            background: #3d341d;
+            color: #ffdc8a;
+        }
+
+        .card-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 5px;
+        }
+
+        .card-actions > * {
+            flex: 1;
+            min-width: 115px;
+        }
+
+        .message {
+            padding: 22px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: var(--muted);
+            line-height: 1.6;
+        }
+
+        .error {
+            border-color: #793844;
+            color: #ffb5b5;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 25px;
+            color: var(--muted);
+            font-size: 13px;
+        }
+
+        @media (max-width: 750px) {
+            header {
+                padding: 16px 5%;
+            }
+
+            header h2 {
+                font-size: 17px;
+            }
+
+            main {
+                padding: 28px 15px 45px;
+            }
+
+            .summary-grid {
+                gap: 10px;
+            }
+
+            .summary-card {
+                padding: 15px;
+            }
+
+            .summary-card h2 {
+                font-size: 25px;
+            }
+
+            #electionList {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 430px) {
+            header {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+
+            .header-actions {
+                width: 100%;
+            }
+
+            .header-actions button {
+                flex: 1;
+            }
+
+            .summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .summary-card {
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .summary-card p {
+                margin: 0;
+            }
+
+            .summary-card h2 {
+                font-size: 24px;
+            }
+
+            .card-top {
+                flex-direction: column;
+            }
+
+            .detail-row {
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<header>
+    <h2>Online Voting</h2>
+
+    <div class="header-actions">
+        <button class="secondary" id="refreshButton">
+            Refresh
+        </button>
+
+        <button class="logout" id="logoutButton">
+            Logout
+        </button>
+    </div>
+</header>
+
+<main>
+
+    <section class="welcome">
+        <h1>Voter Dashboard</h1>
+
+        <p>
+            Welcome! View available elections, check your eligibility,
+            participate in open elections, and follow published results.
+        </p>
+    </section>
+
+    <section class="summary-grid">
+
+        <div class="summary-card">
+            <p>Total elections</p>
+            <h2 id="totalCount">—</h2>
+        </div>
+
+        <div class="summary-card">
+            <p>Open elections</p>
+            <h2 id="openCount">—</h2>
+        </div>
+
+        <div class="summary-card">
+            <p>Eligible elections</p>
+            <h2 id="eligibleCount">—</h2>
+        </div>
+
+    </section>
+
+    <section>
+        <div class="section-heading">
+            <h2>Available Elections</h2>
+        </div>
+
+        <div id="electionList">
+            <div class="message">
+                Checking your account and loading elections...
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<footer class="footer">
+    Online Voting Platform
+</footer>
+
+<script>
+    // =====================================
+    // DASHBOARD SETTINGS
+    // =====================================
+
+    const electionList =
+        document.getElementById("electionList");
+
+    const totalCount =
+        document.getElementById("totalCount");
+
+    const openCount =
+        document.getElementById("openCount");
+
+    const eligibleCount =
+        document.getElementById("eligibleCount");
+
+    let currentUser = null;
+
+
+    // =====================================
+    // HELPER FUNCTIONS
+    // =====================================
+
+    function escapeHTML(value) {
+        return String(value ?? "").replace(
+            /[&<>"']/g,
+            function (character) {
+                const replacements = {
+                    "&": "&amp;",
+                    "<": "&lt;",
+                    ">": "&gt;",
+                    '"': "&quot;",
+                    "'": "&#039;"
+                };
+
+                return replacements[character];
+            }
+        );
+    }
+
+
+    function formatDate(value) {
+        if (!value) {
+            return "Not specified";
+        }
+
+        const date = new Date(value);
+
+        if (Number.isNaN(date.getTime())) {
+            return "Not specified";
+        }
+
+        return date.toLocaleString(undefined, {
+            year: "numeric",
+            month: "short",
+            day: "numeric",
+            hour: "numeric",
+            minute: "2-digit"
+        });
+    }
+
+
+    // Calculate status using actual times.
+    // The database status must also permit voting.
+
+    function getElectionStatus(election) {
+        const now = Date.now();
+
+        const start = election.starts_at
+            ? new Date(election.starts_at).getTime()
+            : null;
+
+        const end = election.ends_at
+            ? new Date(election.ends_at).getTime()
+            : null;
+
+        const databaseStatus =
+            String(election.status || "").toLowerCase();
+
+        if (databaseStatus === "cancelled") {
+            return {
+                label: "Cancelled",
+                className: "closed",
+                canVote: false
+            };
+        }
+
+        if (
+            start !== null &&
+            Number.isFinite(start) &&
+            now < start
+        ) {
+            return {
+                label: "Upcoming",
+                className: "upcoming",
+                canVote: false
+            };
+        }
+
+        if (
+            end !== null &&
+            Number.isFinite(end) &&
+            now >= end
+        ) {
+            return {
+                label: "Closed",
+                className: "closed",
+                canVote: false
+            };
+        }
+
+        if (
+            databaseStatus === "closed" ||
+            databaseStatus === "completed" ||
+            databaseStatus === "cancelled"
+        ) {
+            return {
+                label: "Closed",
+                className: "closed",
+                canVote: false
+            };
+        }
+
+        if (
+            databaseStatus === "open" &&
+            (start === null || Number.isFinite(start)) &&
+            (end === null || Number.isFinite(end))
+        ) {
+            return {
+                label: "Open",
+                className: "open",
+                canVote: true
+            };
+        }
+
+        return {
+            label: "Unavailable",
+            className: "neutral",
+            canVote: false
+        };
+    }
+
+
+    // =====================================
+    // CHECK LOGIN
+    // =====================================
+
+    async function checkLogin() {
+        const {
+            data,
+            error
+        } = await supabaseClient.auth.getUser();
+
+        if (error || !data.user) {
+            window.location.href = "test.html";
+            return false;
+        }
+
+        currentUser = data.user;
+
+        return true;
+    }
+
+
+    // =====================================
+    // LOAD ELECTIONS
+    // =====================================
+
+    async function loadDashboard() {
+        electionList.innerHTML = `
+            <div class="message">
+                Loading elections...
+            </div>
+        `;
+
+        document.getElementById("refreshButton").disabled = true;
+
+        try {
+            const loggedIn = await checkLogin();
+
+            if (!loggedIn) {
+                return;
+            }
+
+            // Fetch available elections.
+
+            const {
+                data: elections,
+                error: electionError
+            } = await supabaseClient
+                .from("elections")
+                .select(`
+                    id,
+                    title,
+                    description,
+                    starts_at,
+                    ends_at,
+                    status,
+                    results_published
+                `)
+                .order("starts_at", {
+                    ascending: true
+                });
+
+            if (electionError) {
+                throw electionError;
+            }
+
+            // Fetch this user's eligibility records.
+            // If access is denied, do not assume eligibility.
+
+            const {
+                data: eligibilityRecords,
+                error: eligibilityError
+            } = await supabaseClient
+                .from("voter_eligibility")
+                .select("election_id, eligible")
+                .eq("user_id", currentUser.id);
+
+            const eligibilityAvailable = !eligibilityError;
+
+            const eligibilityMap = new Map();
+
+            if (eligibilityAvailable && eligibilityRecords) {
+                eligibilityRecords.forEach(function (record) {
+                    eligibilityMap.set(
+                        record.election_id,
+                        record.eligible === true
+                    );
+                });
+            }
+
+            renderElections(
+                elections || [],
+                eligibilityMap,
+                eligibilityAvailable
+            );
+
+        } catch (error) {
+            console.error("Dashboard error:", error);
+
+            electionList.innerHTML = `
+                <div class="message error">
+                    <strong>Unable to load your dashboard.</strong>
+                    <br><br>
+                    ${escapeHTML(error.message || "An unexpected error occurred.")}
+                    <br><br>
+                    Check your internet connection and Supabase permissions,
+                    then select Refresh to try again.
+                </div>
+            `;
+
+            totalCount.textContent = "—";
+            openCount.textContent = "—";
+            eligibleCount.textContent = "—";
+
+        } finally {
+            document.getElementById("refreshButton").disabled = false;
+        }
+    }
+
+
+    // =====================================
+    // DISPLAY ELECTIONS
+    // =====================================
+
+    function renderElections(
+        elections,
+        eligibilityMap,
+        eligibilityAvailable
+    ) {
+        totalCount.textContent = elections.length;
+
+        const openElections = elections.filter(function (election) {
+            return getElectionStatus(election).canVote;
+        });
+
+        openCount.textContent = openElections.length;
+
+        let eligibleTotal = 0;
+
+        elections.forEach(function (election) {
+            if (eligibilityMap.get(election.id) === true) {
+                eligibleTotal++;
+            }
+        });
+
+        eligibleCount.textContent = eligibilityAvailable
+            ? eligibleTotal
+            : "—";
+
+        if (elections.length === 0) {
+            electionList.innerHTML = `
+                <div class="message">
+                    No elections are available yet.
+                    Please check again later.
+                </div>
+            `;
+
+            return;
+        }
+
+        electionList.innerHTML = elections.map(function (election) {
+
+            const status = getElectionStatus(election);
+
+            const eligible =
+                eligibilityMap.get(election.id) === true;
+
+            const eligibilityKnown =
+                eligibilityMap.has(election.id);
+
+            let eligibilityHTML = "";
+
+            if (!eligibilityAvailable) {
+                eligibilityHTML = `
+                    <div class="eligibility unknown">
+                        Eligibility could not be verified.
+                        Please contact the election administrator.
+                    </div>
+                `;
+            } else if (eligible) {
+                eligibilityHTML = `
+                    <div class="eligibility eligible">
+                        ✓ You are eligible to participate in this election.
+                    </div>
+                `;
+            } else if (eligibilityKnown) {
+                eligibilityHTML = `
+                    <div class="eligibility not-eligible">
+                        You are not eligible to vote in this election.
+                    </div>
+                `;
+            } else {
+                eligibilityHTML = `
+                    <div class="eligibility unknown">
+                        No eligibility record was found for your account.
+                        Please contact the election administrator.
+                    </div>
+                `;
+            }
+
+            const canVote =
+                status.canVote &&
+                eligible &&
+                eligibilityAvailable;
+
+            const published =
+                election.results_published === true;
+
+            const voteButton = canVote
+                ? `
+                    <a class="button primary"
+                       href="vote.html?election_id=${encodeURIComponent(election.id)}">
+                        Vote Now
+                    </a>
+                `
+                : `
+                    <button class="primary" disabled>
+                        ${status.canVote ? "Voting Unavailable" : "Voting " + escapeHTML(status.label)}
+                    </button>
+                `;
+
+            const resultsButton = published
+                ? `
+                    <a class="button secondary"
+                       href="results.html?election_id=${encodeURIComponent(election.id)}">
+                        View Results
+                    </a>
+                `
+                : `
+                    <button class="secondary" disabled>
+                        Results Not Published
+                    </button>
+                `;
+
+            return `
+                <article class="election-card">
+
+                    <div class="card-top">
+                        <h3>${escapeHTML(election.title || "Untitled Election")}</h3>
+
+                        <span class="badge ${status.className}">
+                            ${escapeHTML(status.label)}
+                        </span>
+                    </div>
+
+                    <p class="description">
+                        ${escapeHTML(
+                            election.description ||
+                            "No description has been provided for this election."
+                        )}
+                    </p>
+
+                    <div class="election-details">
+
+                        <div class="detail-row">
+                            <span>Starts</span>
+                            <span>${escapeHTML(formatDate(election.starts_at))}</span>
+                        </div>
+
+                        <div class="detail-row">
+                            <span>Ends</span>
+                            <span>${escapeHTML(formatDate(election.ends_at))}</span>
+                        </div>
+
+                    </div>
+
+                    ${eligibilityHTML}
+
+                    <div class="card-actions">
+                        ${voteButton}
+                        ${resultsButton}
+                    </div>
+
+                </article>
+            `;
+        }).join("");
+    }
+
+
+    // =====================================
+    // LOGOUT
+    // =====================================
+
+    async function logout() {
+        const button = document.getElementById("logoutButton");
+
+        button.disabled = true;
+        button.textContent = "Logging out...";
+
+        try {
+            const {
+                error
+            } = await supabaseClient.auth.signOut();
+
+            if (error) {
+                throw error;
+            }
+
+            window.location.href = "test.html";
+
+        } catch (error) {
+            console.error("Logout error:", error);
+
+            alert("Unable to log out. Please try again.");
+
+            button.disabled = false;
+            button.textContent = "Logout";
+        }
+    }
+
+
+    // =====================================
+    // EVENT LISTENERS
+    // =====================================
+
+    document
+        .getElementById("refreshButton")
+        .addEventListener("click", loadDashboard);
+
+    document
+        .getElementById("logoutButton")
+        .addEventListener("click", logout);
+
+
+    // =====================================
+    // START DASHBOARD
+    // =====================================
+
+    loadDashboard();
+
+</script>
+
+</body>
+</html>
