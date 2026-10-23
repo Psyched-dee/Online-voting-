@@ -1,45 +1,323 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Supabase Connection Test</title>
+    <title>Voting System - Authentication Test</title>
 </head>
 
 <body>
 
-    <h1>Supabase Connection Test</h1>
+    <h1>Supabase Authentication Test</h1>
 
-    <p id="status">Testing connection...</p>
+    <p>
+        This is a temporary development page.
+    </p>
 
-    <!-- Supabase JavaScript library -->
+    <hr>
+
+    <h2>Login</h2>
+
+    <label for="email">Email:</label>
+    <br>
+
+    <input
+        type="email"
+        id="email"
+        placeholder="Enter test email"
+    >
+
+    <br><br>
+
+    <label for="password">Password:</label>
+    <br>
+
+    <input
+        type="password"
+        id="password"
+        placeholder="Enter password"
+    >
+
+    <br><br>
+
+    <button id="loginButton">
+        Log In
+    </button>
+
+    <button id="logoutButton">
+        Log Out
+    </button>
+
+    <hr>
+
+    <h2>Status</h2>
+
+    <p id="status">
+        Not logged in.
+    </p>
+
+    <h2>Current User</h2>
+
+    <pre id="userInfo">
+No user logged in.
+    </pre>
+
+
+    <!--
+        Supabase JavaScript library
+    -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    <!-- Our Supabase configuration -->
+
+    <!--
+        Our Supabase configuration
+    -->
     <script src="js/supabase.js"></script>
 
+
     <script>
-        async function testConnection() {
-            const { data, error } = await supabaseClient
-                .from("elections")
-                .select("id, title")
-                .limit(1);
 
-            const status = document.getElementById("status");
+        // Get references to our HTML elements
 
-            if (error) {
-                console.error(error);
-                status.textContent = "Connection failed: " + error.message;
+        const emailInput =
+            document.getElementById("email");
+
+        const passwordInput =
+            document.getElementById("password");
+
+        const loginButton =
+            document.getElementById("loginButton");
+
+        const logoutButton =
+            document.getElementById("logoutButton");
+
+        const status =
+            document.getElementById("status");
+
+        const userInfo =
+            document.getElementById("userInfo");
+
+
+        /*
+         * LOGIN
+         */
+
+        loginButton.addEventListener("click", async () => {
+
+            status.textContent = "Logging in...";
+
+            const email = emailInput.value.trim();
+            const password = passwordInput.value;
+
+
+            // Basic validation
+
+            if (!email || !password) {
+
+                status.textContent =
+                    "Please enter both email and password.";
+
                 return;
             }
 
-            status.textContent = "Supabase connection successful!";
-            console.log("Election data:", data);
+
+            /*
+             * Ask Supabase Auth to authenticate the user.
+             */
+
+            const { data, error } =
+                await supabaseClient.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+
+
+            /*
+             * Check whether authentication failed.
+             */
+
+            if (error) {
+
+                console.error("Login error:", error);
+
+                status.textContent =
+                    "Login failed: " + error.message;
+
+                return;
+            }
+
+
+            /*
+             * Authentication succeeded.
+             */
+
+            const user = data.user;
+
+            console.log("Authenticated user:", user);
+
+
+            status.textContent =
+                "Authentication successful!";
+
+
+            userInfo.textContent =
+                "User ID: " + user.id +
+                "\nEmail: " + user.email;
+
+
+            /*
+             * Now we test authorization.
+             *
+             * We ask the database whether this
+             * authenticated user has an administrator
+             * record.
+             */
+
+            status.textContent =
+                "Authentication successful. Checking administrator status...";
+
+
+            const { data: adminRecord, error: adminError } =
+                await supabaseClient
+                    .from("election_admins")
+                    .select("election_id")
+                    .eq("user_id", user.id)
+                    .limit(1);
+
+
+            /*
+             * Check whether the administrator query failed.
+             */
+
+            if (adminError) {
+
+                console.error(
+                    "Administrator check error:",
+                    adminError
+                );
+
+                status.textContent =
+                    "Administrator check failed: " +
+                    adminError.message;
+
+                return;
+            }
+
+
+            /*
+             * Determine whether the user is an administrator.
+             */
+
+            if (adminRecord.length > 0) {
+
+                status.textContent =
+                    "Authentication successful. ADMIN access confirmed.";
+
+                console.log(
+                    "Administrator record:",
+                    adminRecord
+                );
+
+            } else {
+
+                status.textContent =
+                    "Authentication successful. " +
+                    "This account is NOT an administrator.";
+
+                console.log(
+                    "No administrator record found."
+                );
+            }
+
+        });
+
+
+        /*
+         * LOGOUT
+         */
+
+        logoutButton.addEventListener("click", async () => {
+
+            const { error } =
+                await supabaseClient.auth.signOut();
+
+
+            if (error) {
+
+                console.error(
+                    "Logout error:",
+                    error
+                );
+
+                status.textContent =
+                    "Logout failed: " +
+                    error.message;
+
+                return;
+            }
+
+
+            status.textContent =
+                "Logged out successfully.";
+
+            userInfo.textContent =
+                "No user logged in.";
+
+            emailInput.value = "";
+            passwordInput.value = "";
+
+        });
+
+
+        /*
+         * CHECK EXISTING SESSION
+         *
+         * Supabase can remember a login session
+         * in the browser.
+         */
+
+        async function checkCurrentSession() {
+
+            const {
+                data: { session }
+            } = await supabaseClient.auth.getSession();
+
+
+            if (session) {
+
+                console.log(
+                    "Existing session found:",
+                    session.user
+                );
+
+                status.textContent =
+                    "Existing login session detected.";
+
+                userInfo.textContent =
+                    "User ID: " +
+                    session.user.id +
+                    "\nEmail: " +
+                    session.user.email;
+
+            } else {
+
+                console.log(
+                    "No existing session."
+                );
+
+            }
+
         }
 
-        testConnection();
+
+        // Run the session check when the page loads
+
+        checkCurrentSession();
+
     </script>
 
 </body>
+
 </html>
