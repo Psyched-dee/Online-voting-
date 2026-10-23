@@ -100,3 +100,20 @@ window.isElectionAdmin = async function (electionId) {
         return false;
     }
 };
+
+// Check whether a user is currently logged in.
+window.isLoggedIn = async function () {
+    try {
+        const { data, error } = await window.supabaseClient.auth.getUser();
+
+        if (error) {
+            console.error("Error checking login status:", error.message);
+            return false;
+        }
+
+        return !!data.user;
+    } catch (error) {
+        console.error("Unexpected login check error:", error);
+        return false;
+    }
+};
