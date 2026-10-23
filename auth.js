@@ -35,10 +35,10 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
     <!-- Supabase configuration -->
-    <script src="js/supabase.js"></script>
+    <script src="supabase.js"></script>
 
     <!-- Our authentication module -->
-    <script src="js/auth.js"></script>
+    <script src="auth.js"></script>
 
 
     <script>
