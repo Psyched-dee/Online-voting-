@@ -39,3 +39,37 @@ async function logoutUser() {
         return false;
     }
 }
+
+// Check whether the current user is an administrator
+// of a specific election.
+async function isElectionAdmin(electionId) {
+    try {
+        const user = await getCurrentUser();
+
+        if (!user || !electionId) {
+            return false;
+        }
+
+        const { data, error } = await window.supabaseClient
+            .from("election_admins")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("election_id", electionId)
+            .maybeSingle();
+
+        if (error) {
+            console.error("Error checking election admin access:", error);
+            return false;
+        }
+
+        return !!data;
+    } catch (error) {
+        console.error("Unexpected error checking admin access:", error);
+        return false;
+    }
+}
+
+// Make the functions available to admin.html
+window.isElectionAdmin = isElectionAdmin;
+window.getCurrentUser = getCurrentUser;
+window.logoutUser = logoutUser;
