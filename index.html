@@ -206,6 +206,8 @@
         const passwordInput = document.getElementById("password");
         const loginButton = document.getElementById("loginButton");
         const statusElement = document.getElementById("status");
+        const resetPasswordButton =
+    document.getElementById("resetPasswordButton");
 
         function showStatus(message, type = "") {
             statusElement.textContent = message;
@@ -281,6 +283,57 @@
             }
         });
 
+            resetPasswordButton.addEventListener("click", async () => {
+    const email = emailInput.value.trim();
+
+    if (!email) {
+        showStatus(
+            "Enter your registered email address first.",
+            "error"
+        );
+        emailInput.focus();
+        return;
+    }
+
+    resetPasswordButton.disabled = true;
+    resetPasswordButton.textContent = "Sending email…";
+
+    try {
+        const redirectTo =
+            window.location.origin +
+            window.location.pathname.replace(
+                /[^/]*$/,
+                "password-setup.html"
+            );
+
+        const { error } =
+            await supabaseClient.auth.resetPasswordForEmail(email, {
+                redirectTo: redirectTo
+            });
+
+        if (error) {
+            throw error;
+        }
+
+        showStatus(
+            "If the account can receive a password-reset email, " +
+            "a link will be sent. Check your inbox and Spam folder.",
+            "success"
+        );
+    } catch (error) {
+        console.error("Password-reset request failed:", error);
+
+        showStatus(
+            "We couldn't send the email. Please try again later " +
+            "or contact the election administrator.",
+            "error"
+        );
+    } finally {
+        resetPasswordButton.disabled = false;
+        resetPasswordButton.textContent = "Set or Reset Password";
+    }
+});
+        
         async function checkExistingSession() {
             try {
                 const { data, error } =
