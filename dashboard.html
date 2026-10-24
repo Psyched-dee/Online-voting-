@@ -298,6 +298,86 @@
             color: #ffb5b5;
         }
 
+
+        .password-card {
+            margin: 0 0 30px;
+            padding: 22px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+        }
+
+        .password-card h2 {
+            margin: 0 0 8px;
+            font-size: 20px;
+        }
+
+        .password-card p {
+            color: var(--muted);
+            line-height: 1.6;
+            font-size: 14px;
+        }
+
+        .password-form {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 12px;
+            margin-top: 16px;
+        }
+
+        .password-form label {
+            display: block;
+            margin-bottom: 7px;
+            font-size: 13px;
+            font-weight: bold;
+        }
+
+        .password-form input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            background: #0e1728;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        .password-form input:focus {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        .password-form .form-actions {
+            grid-column: 1 / -1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .password-form .form-actions button {
+            margin: 0;
+        }
+
+        #passwordStatus {
+            min-height: 20px;
+            margin-bottom: 0;
+            overflow-wrap: anywhere;
+        }
+
+        #passwordStatus.error {
+            color: #ffb5b5;
+        }
+
+        #passwordStatus.success {
+            color: #79f0bc;
+        }
+
+        @media (max-width: 600px) {
+            .password-form {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .footer {
             text-align: center;
             padding: 25px;
@@ -403,6 +483,49 @@
             Welcome! View available elections, check your eligibility,
             participate in open elections, and follow published results.
         </p>
+    </section>
+
+
+    <section class="password-card" aria-labelledby="passwordHeading">
+        <h2 id="passwordHeading">Set or Change Your Password</h2>
+        <p>
+            Set a password now so you can sign in again later without needing
+            to reuse your invitation link. Keep your password private.
+        </p>
+
+        <button class="secondary" id="togglePasswordForm" type="button"
+                aria-expanded="false" aria-controls="passwordFormPanel">
+            Set Password
+        </button>
+
+        <div id="passwordFormPanel" hidden>
+            <form id="setPasswordForm" class="password-form">
+                <div>
+                    <label for="newPassword">New password</label>
+                    <input id="newPassword" type="password"
+                           autocomplete="new-password" minlength="10"
+                           required placeholder="At least 10 characters">
+                </div>
+
+                <div>
+                    <label for="confirmNewPassword">Confirm password</label>
+                    <input id="confirmNewPassword" type="password"
+                           autocomplete="new-password" minlength="10"
+                           required placeholder="Enter it again">
+                </div>
+
+                <div class="form-actions">
+                    <button class="primary" id="savePasswordButton" type="submit">
+                        Save Password
+                    </button>
+                    <button class="secondary" id="cancelPasswordButton" type="button">
+                        Cancel
+                    </button>
+                </div>
+            </form>
+
+            <p id="passwordStatus" role="status" aria-live="polite"></p>
+        </div>
     </section>
 
     <section class="summary-grid">
@@ -605,6 +728,124 @@
 
         return true;
     }
+
+
+
+    // =====================================
+    // SET OR CHANGE PASSWORD
+    // =====================================
+
+    const togglePasswordFormButton =
+        document.getElementById("togglePasswordForm");
+    const passwordFormPanel =
+        document.getElementById("passwordFormPanel");
+    const setPasswordForm =
+        document.getElementById("setPasswordForm");
+    const newPasswordInput =
+        document.getElementById("newPassword");
+    const confirmNewPasswordInput =
+        document.getElementById("confirmNewPassword");
+    const savePasswordButton =
+        document.getElementById("savePasswordButton");
+    const cancelPasswordButton =
+        document.getElementById("cancelPasswordButton");
+    const passwordStatus =
+        document.getElementById("passwordStatus");
+
+    function showPasswordStatus(message, type = "") {
+        passwordStatus.textContent = message;
+        passwordStatus.className = type;
+    }
+
+    togglePasswordFormButton.addEventListener("click", () => {
+        const opening = passwordFormPanel.hidden;
+        passwordFormPanel.hidden = !opening;
+        togglePasswordFormButton.setAttribute(
+            "aria-expanded",
+            String(opening)
+        );
+        togglePasswordFormButton.textContent =
+            opening ? "Hide Password Form" : "Set Password";
+
+        if (opening) {
+            newPasswordInput.focus();
+        } else {
+            showPasswordStatus("");
+        }
+    });
+
+    cancelPasswordButton.addEventListener("click", () => {
+        setPasswordForm.reset();
+        passwordFormPanel.hidden = true;
+        togglePasswordFormButton.setAttribute("aria-expanded", "false");
+        togglePasswordFormButton.textContent = "Set Password";
+        showPasswordStatus("");
+    });
+
+    setPasswordForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+
+        if (!currentUser) {
+            showPasswordStatus(
+                "Your session is not available. Please sign in again.",
+                "error"
+            );
+            return;
+        }
+
+        const password = newPasswordInput.value;
+        const confirmation = confirmNewPasswordInput.value;
+
+        if (password.length < 10) {
+            showPasswordStatus(
+                "Choose a password with at least 10 characters.",
+                "error"
+            );
+            return;
+        }
+
+        if (password !== confirmation) {
+            showPasswordStatus("The passwords do not match.", "error");
+            confirmNewPasswordInput.focus();
+            return;
+        }
+
+        savePasswordButton.disabled = true;
+        savePasswordButton.textContent = "Saving...";
+
+        try {
+            // This updates the authenticated user's password through Supabase Auth.
+            // No password is written to the application's own database tables.
+            const { data, error } = await supabaseClient.auth.updateUser({
+                password: password
+            });
+
+            if (error) {
+                throw error;
+            }
+
+            if (data.user) {
+                currentUser = data.user;
+            }
+
+            setPasswordForm.reset();
+            showPasswordStatus(
+                "Password saved successfully. You can use this password the next time you sign in.",
+                "success"
+            );
+            togglePasswordFormButton.textContent = "Change Password";
+        } catch (error) {
+            console.error("Password update failed:", error);
+            showPasswordStatus(
+                error.message ||
+                "We couldn't save your password. Please try again while you're signed in.",
+                "error"
+            );
+        } finally {
+            savePasswordButton.disabled = false;
+            savePasswordButton.textContent = "Save Password";
+        }
+    });
 
 
     // =====================================
