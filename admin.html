@@ -96,6 +96,69 @@
             button { max-width: 100%; }
             #createElectionButton, #cancelCreateElectionButton { width: 100%; margin-right: 0 !important; }
         }
+    /* Ñytherion Developer Signature */
+.nytherion-signature {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    padding: 22px 12px;
+    margin: 32px auto 0;
+    width: fit-content;
+    max-width: 100%;
+    font-family: inherit;
+}
+
+.nytherion-mark {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: 1px solid rgba(34, 211, 238, 0.65);
+    border-radius: 10px;
+    color: #22d3ee;
+    font-size: 21px;
+    font-weight: 800;
+    background: rgba(34, 211, 238, 0.07);
+    box-shadow: 0 0 12px rgba(34, 211, 238, 0.08);
+    transition: 0.25s ease;
+}
+
+.nytherion-credit {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 11px;
+    color: #94a3b8;
+    letter-spacing: 0.4px;
+}
+
+.nytherion-code {
+    color: #22d3ee;
+    font-family: monospace;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+.nytherion-credit strong {
+    color: #22d3ee;
+    font-weight: 700;
+}
+
+.nytherion-signature:hover .nytherion-mark {
+    border-color: #22d3ee;
+    box-shadow: 0 0 16px rgba(34, 211, 238, 0.25);
+    transform: translateY(-2px);
+}
+
+@media (max-width: 480px) {
+    .nytherion-signature {
+        margin-top: 20px;
+        padding: 18px 8px;
+    }
+}
+        
     </style>
 
 </head>
@@ -2333,7 +2396,18 @@ loadResultsButton.addEventListener("click", async () => {
         protectAdminPage();
 
     </script>
+    <footer class="nytherion-signature">
+    <div class="nytherion-mark" aria-label="Nytherion logo">
+        Ñ
+    </div>
 
+    <div class="nytherion-credit">
+        <span class="nytherion-code">&lt;/&gt;</span>
+        <span>Engineered by <strong>Ñytherion</strong></span>
+    </div>
+</footer>
+
+    
 </body>
 
 </html>
